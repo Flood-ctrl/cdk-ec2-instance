@@ -14,7 +14,7 @@ class EC2Instance(core.Stack):
 
         vpc = ec2.Vpc(
             self, "MyEC2Vpc",
-            max_azs=2
+            max_azs=2,
         )
 
         security_group = ec2.SecurityGroup(
