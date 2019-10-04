@@ -4,7 +4,8 @@ from aws_cdk import (
     aws_logs as logs,
 )
 
-aws_region = "us-east-1"
+from variables import *
+
 
 class EC2Instance(core.Stack):
 
@@ -16,17 +17,32 @@ class EC2Instance(core.Stack):
             max_azs=2
         )
 
+        security_group = ec2.SecurityGroup(
+            self, "SecurityGroup",
+            vpc=vpc,
+            allow_all_outbound=True,
+        )
+
+        security_group.add_ingress_rule(
+            peer=ec2.Peer.any_ipv4(),
+            connection=ec2.Port.tcp(22),
+            description="Allow all traffic"
+        )
+
         ec2_instance = ec2.Instance(
             self, "EC2Ubuntu",
             vpc=vpc,
+            security_group=security_group,
+            key_name=ssh_key_name,
             instance_type=ec2.InstanceType(
                 instance_type_identifier="t2.micro",
             ),
-
             machine_image=ec2.GenericLinuxImage(
                 ami_map={aws_region: "ami-01d9d5f6cecc31f85"},
             ),
-
+            vpc_subnets=ec2.SubnetSelection(
+                subnet_type=ec2.SubnetType.PUBLIC,
+            ),
         )
 
         core.CfnOutput(
