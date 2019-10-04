@@ -4,9 +4,7 @@ from aws_cdk import (
     aws_logs as logs,
 )
 
-http_port = 80
-task_def_cpu = "256"
-task_def_memory_mb = "512"
+aws_region = "us-east-1"
 
 class EC2Instance(core.Stack):
 
@@ -18,7 +16,22 @@ class EC2Instance(core.Stack):
             max_azs=2
         )
 
-        core.CfnOutput(
-        self, "LoadBalancerDNS",
-        value=elastic_loadbalancer.load_balancer_dns_name
+        ec2_instance = ec2.Instance(
+            self, "EC2Ubuntu",
+            vpc=vpc,
+            instance_type=ec2.InstanceType(
+                instance_type_identifier="t2.micro",
+            ),
+
+            machine_image=ec2.GenericLinuxImage(
+                ami_map={aws_region: "ami-01d9d5f6cecc31f85"},
+            ),
+
         )
+
+        core.CfnOutput(
+        self, "InstanceIP",
+        value=ec2_instance.instance_public_ip
+        )
+
+        #aws ec2 describe-images --region us-east-1 --owners 099720109477 --filters 'Name=name,Values=ubuntu/images/hvm-ssd/ubuntu-xenial-16.04-amd64-server-????????' 'Name=state,Values=available' | head -n50
