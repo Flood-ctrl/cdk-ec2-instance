@@ -21,6 +21,16 @@ class EC2Instance(core.Stack):
             description="AMI ID for EC2 instance",
         )
 
+        ami_id_parameter_store = ssm.StringParameter.from_string_parameter_name(
+            self, "ExistingSsmAmidID",
+            string_parameter_name=ssm_ami_id_name,
+        )
+
+        if use_ssm_ami:
+            ami_map_value = {aws_region: ami_id_parameter_store.string_value}
+        else:
+            ami_map_value = {aws_region: parameter_store.string_value}
+
         vpc = ec2.Vpc(
             self, "MyEC2Vpc",
             max_azs=2,
@@ -48,7 +58,7 @@ class EC2Instance(core.Stack):
         )
 
         ec2_instance = ec2.Instance(
-            self, "EC2Ubuntu",
+            self, "EC2Instance",
             vpc=vpc,
             security_group=security_group,
             key_name=ssh_key_name,
@@ -56,7 +66,7 @@ class EC2Instance(core.Stack):
                 instance_type_identifier="t2.micro",
             ),
             machine_image=ec2.GenericLinuxImage(
-                ami_map={aws_region: parameter_store.string_value},
+                ami_map=ami_map_value,
             ),
             vpc_subnets=ec2.SubnetSelection(
                 subnet_type=ec2.SubnetType.PUBLIC,
