@@ -47,7 +47,7 @@ class EC2Instance(core.Stack):
                 instance_type_identifier="t2.micro",
             ),
             machine_image=ec2.GenericLinuxImage(
-                ami_map={aws_region: "ami-01d9d5f6cecc31f85"},
+                ami_map={aws_region: ami_id},
             ),
             vpc_subnets=ec2.SubnetSelection(
                 subnet_type=ec2.SubnetType.PUBLIC,
