@@ -26,7 +26,7 @@ class EC2Instance(core.Stack):
             string_parameter_name=ssm_ami_id_name,
         )
 
-        if use_ssm_ami:
+        if use_ami_id_from_ssm:
             ami_map_value = {aws_region: ami_id_parameter_store.string_value}
         else:
             ami_map_value = {aws_region: parameter_store.string_value}
