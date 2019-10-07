@@ -15,6 +15,15 @@ class EC2Instance(core.Stack):
         vpc = ec2.Vpc(
             self, "MyEC2Vpc",
             max_azs=2,
+            nat_gateways=0,
+            enable_dns_hostnames=True,
+            enable_dns_support=True,
+            subnet_configuration=[ec2.SubnetConfiguration(
+                name="EC2PublicSubnet",
+                subnet_type= ec2.SubnetType.PUBLIC,
+                cidr_mask= 28,
+            ),
+            ],
         )
 
         security_group = ec2.SecurityGroup(
