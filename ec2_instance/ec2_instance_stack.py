@@ -54,6 +54,12 @@ class EC2Instance(core.Stack):
             ),
         )
 
+        ec2_tags = core.Tag.add(
+            self,
+            key="CDK-Type",
+            value="EC2Instance",
+        )
+
         core.CfnOutput(
         self, "InstanceIP",
         value=ec2_instance.instance_public_ip
