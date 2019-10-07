@@ -1,6 +1,7 @@
 from aws_cdk import (
     core,
     aws_ec2 as ec2,
+    aws_ssm as ssm,
     aws_logs as logs,
 )
 
@@ -11,6 +12,14 @@ class EC2Instance(core.Stack):
 
     def __init__(self, scope: core.Construct, id: str, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
+
+        parameter_store = ssm.StringParameter(
+            self, "SsmAmiId",
+            parameter_name="AmiId",
+            string_value=ami_id,
+            type=ssm.ParameterType.STRING,
+            description="AMI ID for EC2 instance",
+        )
 
         vpc = ec2.Vpc(
             self, "MyEC2Vpc",
@@ -47,7 +56,7 @@ class EC2Instance(core.Stack):
                 instance_type_identifier="t2.micro",
             ),
             machine_image=ec2.GenericLinuxImage(
-                ami_map={aws_region: ami_id},
+                ami_map={aws_region: parameter_store.string_value},
             ),
             vpc_subnets=ec2.SubnetSelection(
                 subnet_type=ec2.SubnetType.PUBLIC,
