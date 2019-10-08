@@ -3,4 +3,3 @@ cdk.out/
 *.egg-info/
 .env
 .vscode
-variables.py
