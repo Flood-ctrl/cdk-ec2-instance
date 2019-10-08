@@ -57,6 +57,11 @@ class EC2Instance(core.Stack):
             description="Allow all traffic"
         )
 
+        ec2_user_data = ec2.UserData.for_linux()
+        ec2_user_data.add_commands(
+            "sudo yum install -y https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_amd64/amazon-ssm-agent.rpm",
+        )
+
         ec2_instance = ec2.Instance(
             self, "EC2Instance",
             vpc=vpc,
@@ -71,6 +76,7 @@ class EC2Instance(core.Stack):
             vpc_subnets=ec2.SubnetSelection(
                 subnet_type=ec2.SubnetType.PUBLIC,
             ),
+            user_data=ec2_user_data,
         )
 
         ec2_tags = core.Tag.add(
