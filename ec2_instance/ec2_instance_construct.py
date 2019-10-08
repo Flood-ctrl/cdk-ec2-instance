@@ -5,7 +5,7 @@ from aws_cdk import (
 )
 
 
-class FargateConstruct(core.Construct):
+class EC2InstanceConstruct(core.Construct):
 
     @property
     def buckets(self):
