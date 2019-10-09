@@ -5,7 +5,7 @@ from aws_cdk import (
 )
 
 
-class FargateConstruct(core.Construct):
+class EC2InstanceConstruct(core.Construct):
 
     @property
     def buckets(self):
@@ -16,7 +16,7 @@ class FargateConstruct(core.Construct):
         self._buckets = []
         for i in range(0, num_buckets):
             self._buckets.append(s3.Bucket(self, f"Bucket-{i}"))
-    
+
     def grant_read(self, principal: iam.IPrincipal):
         for b in self.buckets:
             b.grant_read(principal, "*")

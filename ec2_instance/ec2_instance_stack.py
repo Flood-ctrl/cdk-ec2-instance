@@ -1,16 +1,36 @@
 from aws_cdk import (
     core,
     aws_ec2 as ec2,
+    aws_ssm as ssm,
     aws_logs as logs,
 )
 
 from variables import *
 
+from ec2_instance_construct import EC2InstanceConstruct
 
 class EC2Instance(core.Stack):
 
     def __init__(self, scope: core.Construct, id: str, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
+
+        parameter_store = ssm.StringParameter(
+            self, "SsmAmiId",
+            parameter_name="AmiId",
+            string_value=ami_id,
+            type=ssm.ParameterType.STRING,
+            description="AMI ID for EC2 instance",
+        )
+
+        ami_id_parameter_store = ssm.StringParameter.from_string_parameter_name(
+            self, "ExistingSsmAmidID",
+            string_parameter_name=ssm_ami_id_name,
+        )
+
+        if use_ami_id_from_ssm:
+            ami_map_value = {aws_region: ami_id_parameter_store.string_value}
+        else:
+            ami_map_value = {aws_region: parameter_store.string_value}
 
         vpc = ec2.Vpc(
             self, "MyEC2Vpc",
@@ -38,8 +58,13 @@ class EC2Instance(core.Stack):
             description="Allow all traffic"
         )
 
+        ec2_user_data = ec2.UserData.for_linux()
+        ec2_user_data.add_commands(
+            "sudo yum install -y https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_amd64/amazon-ssm-agent.rpm",
+        )
+
         ec2_instance = ec2.Instance(
-            self, "EC2Ubuntu",
+            self, "EC2Instance",
             vpc=vpc,
             security_group=security_group,
             key_name=ssh_key_name,
@@ -47,11 +72,18 @@ class EC2Instance(core.Stack):
                 instance_type_identifier="t2.micro",
             ),
             machine_image=ec2.GenericLinuxImage(
-                ami_map={aws_region: "ami-01d9d5f6cecc31f85"},
+                ami_map=ami_map_value,
             ),
             vpc_subnets=ec2.SubnetSelection(
                 subnet_type=ec2.SubnetType.PUBLIC,
             ),
+            user_data=ec2_user_data,
+        )
+
+        ec2_tags = core.Tag.add(
+            self,
+            key="CDK-Type",
+            value="EC2Instance",
         )
 
         core.CfnOutput(
@@ -59,4 +91,6 @@ class EC2Instance(core.Stack):
         value=ec2_instance.instance_public_ip
         )
 
-        #aws ec2 describe-images --region us-east-1 --owners 099720109477 --filters 'Name=name,Values=ubuntu/images/hvm-ssd/ubuntu-xenial-16.04-amd64-server-????????' 'Name=state,Values=available' | head -n50
+
+#aws ec2 describe-images --region us-east-1 --owners 099720109477 --filters 'Name=name,Values=ubuntu/images/hvm-ssd/ubuntu-xenial-16.04-amd64-server-????????' 'Name=state,Values=available' | head -n50
+#aws ec2 describe-images --region us-east-1 --owners amazon --filters 'Name=name,Values=amzn2-ami-hvm-2.0.????????-x86_64-gp2' 'Name=state,Values=available' --query 'reverse(sort_by(Images, &CreationDate))[:1].ImageId' --output text
