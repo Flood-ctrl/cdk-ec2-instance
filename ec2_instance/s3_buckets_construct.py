@@ -5,7 +5,7 @@ from aws_cdk import (
 )
 
 
-class EC2InstanceConstruct(core.Construct):
+class S3BucletsConstruct(core.Construct):
 
     @property
     def buckets(self):
