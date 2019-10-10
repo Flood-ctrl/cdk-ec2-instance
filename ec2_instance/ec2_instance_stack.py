@@ -8,6 +8,7 @@ from aws_cdk import (
 from variables import *
 
 from s3_buckets_construct import S3BucletsConstruct
+from ssm_association import SSMAssociation
 
 class EC2Instance(core.Stack):
 
@@ -61,6 +62,7 @@ class EC2Instance(core.Stack):
         ec2_user_data = ec2.UserData.for_linux()
         ec2_user_data.add_commands(
             "sudo yum install -y https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_amd64/amazon-ssm-agent.rpm",
+            "sudo systemctl start amazon-ssm-agent",
         )
 
         ec2_instance = ec2.Instance(
@@ -91,7 +93,9 @@ class EC2Instance(core.Stack):
         value=ec2_instance.instance_public_ip
         )
 
-        s3buckets = S3BucletsConstruct(self, "MyHELLO", num_buckets=0)
+        s3buckets = S3BucletsConstruct(self, "S3Bucket", num_buckets=0)
+        ssm_association = SSMAssociation(self, "SSMAssociation", ssm_association_name="AWS-RunAnsiblePlaybook")
 
 #aws ec2 describe-images --region us-east-1 --owners 099720109477 --filters 'Name=name,Values=ubuntu/images/hvm-ssd/ubuntu-xenial-16.04-amd64-server-????????' 'Name=state,Values=available' | head -n50
 #aws ec2 describe-images --region us-east-1 --owners amazon --filters 'Name=name,Values=amzn2-ami-hvm-2.0.????????-x86_64-gp2' 'Name=state,Values=available' --query 'reverse(sort_by(Images, &CreationDate))[:1].ImageId' --output text
+#arn:aws:iam::846580235911:instance-profile/AmazonSSMRoleForInstancesQuickSetup
