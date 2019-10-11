@@ -13,6 +13,7 @@ class SSMAssociation(core.Construct):
             self, "SSMAssociation",
             name=ssm_association_name,
             output_location=None,
+            #Parameters are not adding to document!!!!!
             parameters=core.IResolvable.resolve(
                 self,
                 {
