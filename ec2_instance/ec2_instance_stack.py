@@ -11,6 +11,7 @@ from variables import *
 from s3_buckets_construct import S3BucletsConstruct
 from ssm_association_construct import SSMAssociationConstruct
 
+
 class EC2Instance(core.Stack):
 
     def __init__(self, scope: core.Construct, id: str, **kwargs) -> None:
