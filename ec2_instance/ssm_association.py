@@ -9,9 +9,11 @@ class SSMAssociation(core.Construct):
     ssm_association_name: str, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
-        ssm_param_values = ssm.CfnAssociation.ParameterValuesProperty(
-            parameter_values=["s3://test-ansible-pl-hw/playbook.yml"],
-        )
+        parameters_map={
+            "playbookurl": ssm.CfnAssociation.ParameterValuesProperty(
+                parameter_values=["s3://test-ansible-pl-hw/playbook.yml"],
+            ),
+        }
 
         ssm_tartgets = ssm.CfnAssociation.TargetProperty(
             key="CDK-Type",
@@ -23,7 +25,13 @@ class SSMAssociation(core.Construct):
             name=ssm_association_name,
             output_location=None,
             parameters={
-                "playbookurl": ssm_param_values,
+                "SourceType": ["S3"],
+                "SourceInfo":["{\"path\":\"s3://test-ansible-pl-hw/playbook.yml\"}"],
+                "InstallDependencies":["True"],
+                "PlaybookFile":["playbook.yml"],
+                "ExtraVariables":["SSM=True"],
+                "Check":["False"],
+                "Verbose":["-v"]
             },
 
             targets=None,
