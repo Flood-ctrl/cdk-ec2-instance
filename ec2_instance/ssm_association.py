@@ -24,7 +24,9 @@ class SSMAssociation(core.Construct):
             self, "SSMAssociation",
             name=ssm_association_name,
             output_location=None,
-            parameters={
+            parameters=core.IResolvable.resolve(
+                self,
+                {
                 "SourceType": ["S3"],
                 "SourceInfo":["{\"path\":\"s3://test-ansible-pl-hw/playbook.yml\"}"],
                 "InstallDependencies":["True"],
@@ -33,6 +35,7 @@ class SSMAssociation(core.Construct):
                 "Check":["False"],
                 "Verbose":["-v"]
             },
+            ),
 
             targets=None,
         )
