@@ -8,7 +8,7 @@ from aws_cdk import (
 
 from variables import *
 
-from s3_buckets_construct import S3BucletsConstruct
+from s3_buckets_construct import S3BucketsConstruct
 from ssm_association_construct import SSMAssociationConstruct
 
 
@@ -63,8 +63,11 @@ class EC2Instance(core.Stack):
 
         ec2_user_data = ec2.UserData.for_linux()
         ec2_user_data.add_commands(
-            "sudo yum install -y https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_amd64/amazon-ssm-agent.rpm",
-            "sudo systemctl start amazon-ssm-agent",
+            '''
+                sudo amazon-linux-extras install -y epel && sudo yum -y install ansible;
+                sudo yum install -y https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_amd64/amazon-ssm-agent.rpm" ;
+                sudo systemctl start amazon-ssm-agent"
+            '''
         )
 
         ec2_instance = ec2.Instance(
@@ -84,10 +87,16 @@ class EC2Instance(core.Stack):
             user_data=ec2_user_data,
         )
 
+        # ec2_tags = core.Tag(
+        #     key="CDK-Type",
+        #     value="EC2",
+        # )
+
         ec2_tags = core.Tag.add(
             self,
-            key="CDK-Type",
-            value="EC2Instance",
+            key=ec2_tag_key,
+            value=ec2_tag_value,
+            include_resource_types=["AWS::EC2::Instance"],
         )
 
         core.CfnOutput(
@@ -95,10 +104,12 @@ class EC2Instance(core.Stack):
         value=ec2_instance.instance_public_ip
         )
 
-        s3buckets = S3BucletsConstruct(self, "S3Bucket", num_buckets=0)
+        s3buckets = S3BucketsConstruct(self, "S3Bucket", num_buckets=0)
         ssm_association = SSMAssociationConstruct(self, "SSMAssociation",
         ec2_instance_name=ec2_instance,
-        ssm_association_name="AWS-RunAnsiblePlaybook")
+        ssm_association_name="AWS-RunAnsiblePlaybook",
+        ec2_tag_key=ec2_tag_key,
+        ec2_tag_value=ec2_tag_value)
 
 #aws ec2 describe-images --region us-east-1 --owners 099720109477 --filters 'Name=name,Values=ubuntu/images/hvm-ssd/ubuntu-xenial-16.04-amd64-server-????????' 'Name=state,Values=available' | head -n50
 #aws ec2 describe-images --region us-east-1 --owners amazon --filters 'Name=name,Values=amzn2-ami-hvm-2.0.????????-x86_64-gp2' 'Name=state,Values=available' --query 'reverse(sort_by(Images, &CreationDate))[:1].ImageId' --output text

@@ -11,6 +11,8 @@ class SSMAssociationConstruct(core.Construct):
     def __init__(self, scope: core.Construct, id: str, 
     ssm_association_name: str,
     ec2_instance_name,
+    ec2_tag_key: str,
+    ec2_tag_value: str,
     **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
@@ -25,11 +27,10 @@ class SSMAssociationConstruct(core.Construct):
                             "Name" : "AWS-RunAnsiblePlaybook",
                             "Parameters" : {
                                 "playbookurl":["s3://test-ansible-pl-hw/playbook.yml"],
-                                "playbook":["playbook.yml"]
                             },
                             "Targets" : [{
-                                "Key": "tag:CDK-Type",
-                                "Values": ["EC2Instance"]
+                                "Key": f"tag:{ec2_tag_key}",
+                                "Values": [f"{ec2_tag_value}"]
                             }]
                           }
                     }
@@ -37,6 +38,7 @@ class SSMAssociationConstruct(core.Construct):
             }
         )
 
+        #cfn_include.
 
         ec2_instance_name.add_to_role_policy(
             statement=iam.PolicyStatement(

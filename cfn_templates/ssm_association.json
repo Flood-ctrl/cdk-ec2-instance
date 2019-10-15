@@ -6,9 +6,7 @@
             "AssociationName" : "SSMRunPlaybook",
             "Name": "AWS-RunAnsiblePlaybook",
             "Parameters": {
-                "playbookurl":["s3://test-ansible-pl-hw/playbook.yml"],
-                "playbook":["playbook.yml"]
-
+                "playbookurl":["s3://test-ansible-pl-hw/playbook.yml"]
             },
             "Targets":[
                 {
