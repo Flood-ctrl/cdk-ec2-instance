@@ -73,3 +73,14 @@ class SSMAssociationConstruct(core.Construct):
                 resources=["*"],
             )
         )
+
+        ec2_instance_name.add_to_role_policy(
+            statement=iam.PolicyStatement(
+                effect=iam.Effect.ALLOW,
+                actions=[
+                    "s3:GetObject",
+                    "s3:GetBucketLocation"
+                ],
+                resources=["arn:aws:s3:::*"],
+            )
+        )
