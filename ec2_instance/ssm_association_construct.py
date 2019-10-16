@@ -9,11 +9,11 @@ from aws_cdk import (
 class SSMAssociationConstruct(core.Construct):
 
     def __init__(self, scope: core.Construct, id: str, 
-    ssm_association_name: str,
-    ec2_instance_name,
-    ec2_tag_key: str,
-    ec2_tag_value: str,
-    **kwargs) -> None:
+                 playbook_url: str,
+                 ec2_instance_name,
+                 ec2_tag_key: str,
+                 ec2_tag_value: str,
+                 **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
         cfn_include = core.CfnInclude(
@@ -26,7 +26,7 @@ class SSMAssociationConstruct(core.Construct):
                             "AssociationName" : "SSMRunAnsible" ,
                             "Name" : "AWS-RunAnsiblePlaybook",
                             "Parameters" : {
-                                "playbookurl":["s3://test-ansible-pl-hw/playbook.yml"],
+                                "playbookurl":[playbook_url],
                             },
                             "Targets" : [{
                                 "Key": f"tag:{ec2_tag_key}",

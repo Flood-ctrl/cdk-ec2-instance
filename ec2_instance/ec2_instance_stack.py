@@ -15,7 +15,7 @@ from ssm_association_construct import SSMAssociationConstruct
 class EC2Instance(core.Stack):
 
     def __init__(self, scope: core.Construct, id: str, 
-                 ec2_tag_key, ec2_tag_value,
+                 ec2_tag_key="cdk", ec2_tag_value="instance", playbook_url=None,
                  **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
@@ -72,27 +72,29 @@ class EC2Instance(core.Stack):
             '''
         )
 
-        ec2_instance = ec2.Instance(
-            self, "EC2Instance",
-            vpc=vpc,
-            security_group=security_group,
-            key_name=ssh_key_name,
-            instance_type=ec2.InstanceType(
-                instance_type_identifier="t2.micro",
-            ),
-            machine_image=ec2.GenericLinuxImage(
-                ami_map=ami_map_value,
-            ),
-            vpc_subnets=ec2.SubnetSelection(
-                subnet_type=ec2.SubnetType.PUBLIC,
-            ),
-            user_data=ec2_user_data,
-        )
+        for i in range(0, 1):
+            ec2_instance = ec2.Instance(
+                self, f"EC2Instance{i}",
+                vpc=vpc,
+                security_group=security_group,
+                key_name=ssh_key_name,
+                instance_type=ec2.InstanceType(
+                    instance_type_identifier="t2.micro",
+                ),
+                machine_image=ec2.GenericLinuxImage(
+                    ami_map=ami_map_value,
+                ),
+                vpc_subnets=ec2.SubnetSelection(
+                    subnet_type=ec2.SubnetType.PUBLIC,
+                ),
+                user_data=ec2_user_data,
+            )
 
-        # ec2_tags = core.Tag(
-        #     key="CDK-Type",
-        #     value="EC2",
-        # )
+            core.CfnOutput(
+            self, f"InstanceIP{i}",
+            value=f"ssh -i \"{ssh_key_name}.pem\" ec2-user@{ec2_instance.instance_public_ip}"
+            )
+
 
         ec2_tags = core.Tag.add(
             self,
@@ -101,17 +103,13 @@ class EC2Instance(core.Stack):
             include_resource_types=["AWS::EC2::Instance"],
         )
 
-        core.CfnOutput(
-        self, "InstanceIP",
-        value=ec2_instance.instance_public_ip
-        )
-
         s3buckets = S3BucketsConstruct(self, "S3Bucket", num_buckets=0)
         ssm_association = SSMAssociationConstruct(self, "SSMAssociation",
-        ec2_instance_name=ec2_instance,
-        ssm_association_name="AWS-RunAnsiblePlaybook",
-        ec2_tag_key=ec2_tag_key,
-        ec2_tag_value=ec2_tag_value)
+                                                  ec2_instance_name=ec2_instance,
+                                                  ec2_tag_key=ec2_tag_key,
+                                                  ec2_tag_value=ec2_tag_value,
+                                                  playbook_url=playbook_url
+        )
 
 #aws ec2 describe-images --region us-east-1 --owners 099720109477 --filters 'Name=name,Values=ubuntu/images/hvm-ssd/ubuntu-xenial-16.04-amd64-server-????????' 'Name=state,Values=available' | head -n50
 #aws ec2 describe-images --region us-east-1 --owners amazon --filters 'Name=name,Values=amzn2-ami-hvm-2.0.????????-x86_64-gp2' 'Name=state,Values=available' --query 'reverse(sort_by(Images, &CreationDate))[:1].ImageId' --output text
