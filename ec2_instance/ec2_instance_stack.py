@@ -65,11 +65,6 @@ class EC2Instance(core.Stack):
         )
 
         ec2_user_data = ec2.UserData.for_linux()
-        
-        if ssm_using is not None:
-            ec2_user_data.add_commands(
-                "sudo systemctl start amazon-ssm-agent"
-            )
 
         for i in range(0, instances_count):
             ec2_instance = ec2.Instance(
@@ -89,7 +84,7 @@ class EC2Instance(core.Stack):
                 user_data=ec2_user_data,
             )
 
-            if playbook_url is not None:
+            if ssm_using is not None:
                 ec2_instance.add_to_role_policy(
                 statement=iam.PolicyStatement(
                     effect=iam.Effect.ALLOW,
@@ -154,11 +149,6 @@ class EC2Instance(core.Stack):
         )
 
         s3buckets = S3BucketsConstruct(self, "S3Bucket", num_buckets=0)
-        ssm_association = SSMAssociationConstruct(self, "SSMAssociation",
-                                                  ec2_tag_key=ec2_tag_key,
-                                                  ec2_tag_value=ec2_tag_value,
-                                                  playbook_url=playbook_url
-        )
 
 #aws ec2 describe-images --region us-east-1 --owners 099720109477 --filters 'Name=name,Values=ubuntu/images/hvm-ssd/ubuntu-xenial-16.04-amd64-server-????????' 'Name=state,Values=available' | head -n50
 #aws ec2 describe-images --region us-east-1 --owners amazon --filters 'Name=name,Values=amzn2-ami-hvm-2.0.????????-x86_64-gp2' 'Name=state,Values=available' --query 'reverse(sort_by(Images, &CreationDate))[:1].ImageId' --output text
