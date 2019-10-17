@@ -10,6 +10,7 @@ from variables import *
 
 from s3_buckets_construct import S3BucketsConstruct
 from ssm_association_construct import SSMAssociationConstruct
+from lambda_ssm.lambda_ssm_construct import LambdaSsmConstruct
 
 
 class EC2Instance(core.Stack):
@@ -38,31 +39,31 @@ class EC2Instance(core.Stack):
         else:
             ami_map_value = {aws_region: parameter_store.string_value}
 
-        vpc = ec2.Vpc(
-            self, "MyEC2Vpc",
-            max_azs=2,
-            nat_gateways=0,
-            enable_dns_hostnames=True,
-            enable_dns_support=True,
-            subnet_configuration=[ec2.SubnetConfiguration(
-                name="EC2PublicSubnet",
-                subnet_type= ec2.SubnetType.PUBLIC,
-                cidr_mask= 28,
-            ),
-            ],
-        )
+        # vpc = ec2.Vpc(
+        #     self, "MyEC2Vpc",
+        #     max_azs=2,
+        #     nat_gateways=0,
+        #     enable_dns_hostnames=True,
+        #     enable_dns_support=True,
+        #     subnet_configuration=[ec2.SubnetConfiguration(
+        #         name="EC2PublicSubnet",
+        #         subnet_type= ec2.SubnetType.PUBLIC,
+        #         cidr_mask= 28,
+        #     ),
+        #     ],
+        # )
 
-        security_group = ec2.SecurityGroup(
-            self, "SecurityGroup",
-            vpc=vpc,
-            allow_all_outbound=True,
-        )
+        # security_group = ec2.SecurityGroup(
+        #     self, "SecurityGroup",
+        #     vpc=vpc,
+        #     allow_all_outbound=True,
+        # )
 
-        security_group.add_ingress_rule(
-            peer=ec2.Peer.any_ipv4(),
-            connection=ec2.Port.tcp(22),
-            description="Allow all traffic"
-        )
+        # security_group.add_ingress_rule(
+        #     peer=ec2.Peer.any_ipv4(),
+        #     connection=ec2.Port.tcp(22),
+        #     description="Allow all traffic"
+        # )
 
         ec2_user_data = ec2.UserData.for_linux()
 
@@ -149,6 +150,8 @@ class EC2Instance(core.Stack):
         )
 
         s3buckets = S3BucketsConstruct(self, "S3Bucket", num_buckets=0)
+
+        lambda_ssm = LambdaSsmConstruct(self, "LambdaSsm")
 
 #aws ec2 describe-images --region us-east-1 --owners 099720109477 --filters 'Name=name,Values=ubuntu/images/hvm-ssd/ubuntu-xenial-16.04-amd64-server-????????' 'Name=state,Values=available' | head -n50
 #aws ec2 describe-images --region us-east-1 --owners amazon --filters 'Name=name,Values=amzn2-ami-hvm-2.0.????????-x86_64-gp2' 'Name=state,Values=available' --query 'reverse(sort_by(Images, &CreationDate))[:1].ImageId' --output text
