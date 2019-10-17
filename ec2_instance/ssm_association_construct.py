@@ -25,6 +25,7 @@ class SSMAssociationConstruct(core.Construct):
                             "Properties" : {
                                 "AssociationName" : "SSMRunAnsible" ,
                                 "Name" : "AWS-RunAnsiblePlaybook",
+                                "ScheduleExpression": "cron(0 0/30 * * * ? *)",
                                 "Parameters" : {
                                     "playbookurl":[playbook_url],
                                 },

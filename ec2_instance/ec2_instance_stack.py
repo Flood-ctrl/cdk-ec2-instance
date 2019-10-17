@@ -16,7 +16,7 @@ class EC2Instance(core.Stack):
 
     def __init__(self, scope: core.Construct, id: str, 
                  ec2_tag_key="cdk", ec2_tag_value="instance", playbook_url=None,
-                 instances_count=1,
+                 instances_count=1, ssm_using=None,
                  **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
@@ -65,13 +65,11 @@ class EC2Instance(core.Stack):
         )
 
         ec2_user_data = ec2.UserData.for_linux()
-        ec2_user_data.add_commands(
-            '''
-                sudo amazon-linux-extras install -y epel && sudo yum -y install ansible;
-                sudo yum install -y https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_amd64/amazon-ssm-agent.rpm" ;
-                sudo systemctl start amazon-ssm-agent"
-            '''
-        )
+        
+        if ssm_using is not None:
+            ec2_user_data.add_commands(
+                "sudo systemctl start amazon-ssm-agent"
+            )
 
         for i in range(0, instances_count):
             ec2_instance = ec2.Instance(
@@ -134,6 +132,12 @@ class EC2Instance(core.Stack):
                         ],
                         resources=["arn:aws:s3:::*"],
                     )
+                )
+                ec2_user_data.add_commands(
+                    '''
+                        sudo systemctl start amazon-ssm-agent;
+                        sudo amazon-linux-extras install -y epel && sudo yum -y install ansible;
+                    '''
                 )
     
             core.CfnOutput(
