@@ -16,6 +16,7 @@ class EC2Instance(core.Stack):
 
     def __init__(self, scope: core.Construct, id: str, 
                  ec2_tag_key="cdk", ec2_tag_value="instance", playbook_url=None,
+                 instances_count=1, ssm_using=None,
                  **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
@@ -64,15 +65,13 @@ class EC2Instance(core.Stack):
         )
 
         ec2_user_data = ec2.UserData.for_linux()
-        ec2_user_data.add_commands(
-            '''
-                sudo amazon-linux-extras install -y epel && sudo yum -y install ansible;
-                sudo yum install -y https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_amd64/amazon-ssm-agent.rpm" ;
-                sudo systemctl start amazon-ssm-agent"
-            '''
-        )
+        
+        if ssm_using is not None:
+            ec2_user_data.add_commands(
+                "sudo systemctl start amazon-ssm-agent"
+            )
 
-        for i in range(0, 1):
+        for i in range(0, instances_count):
             ec2_instance = ec2.Instance(
                 self, f"EC2Instance{i}",
                 vpc=vpc,
@@ -90,6 +89,57 @@ class EC2Instance(core.Stack):
                 user_data=ec2_user_data,
             )
 
+            if playbook_url is not None:
+                ec2_instance.add_to_role_policy(
+                statement=iam.PolicyStatement(
+                    effect=iam.Effect.ALLOW,
+                    actions=[
+                    "ssm:DescribeAssociation",
+                    "ssm:GetDeployablePatchSnapshotForInstance",
+                    "ssm:GetDocument",
+                    "ssm:DescribeDocument",
+                    "ssm:GetManifest",
+                    "ssm:GetParameter",
+                    "ssm:GetParameters",
+                    "ssm:ListAssociations",
+                    "ssm:ListInstanceAssociations",
+                    "ssm:PutInventory",
+                    "ssm:PutComplianceItems",
+                    "ssm:PutConfigurePackageResult",
+                    "ssm:UpdateAssociationStatus",
+                    "ssm:UpdateInstanceAssociationStatus",
+                    "ssm:UpdateInstanceInformation",
+                    "ssmmessages:CreateControlChannel",
+                    "ssmmessages:CreateDataChannel",
+                    "ssmmessages:OpenControlChannel",
+                    "ssmmessages:OpenDataChannel",
+                    "ec2messages:AcknowledgeMessage",
+                    "ec2messages:DeleteMessage",
+                    "ec2messages:FailMessage",
+                    "ec2messages:GetEndpoint",
+                    "ec2messages:GetMessages",
+                    "ec2messages:SendReply",
+                    ],
+                    resources=["*"],
+                    )
+                )
+                ec2_instance.add_to_role_policy(
+                    statement=iam.PolicyStatement(
+                        effect=iam.Effect.ALLOW,
+                        actions=[
+                            "s3:GetObject",
+                            "s3:GetBucketLocation"
+                        ],
+                        resources=["arn:aws:s3:::*"],
+                    )
+                )
+                ec2_user_data.add_commands(
+                    '''
+                        sudo systemctl start amazon-ssm-agent;
+                        sudo amazon-linux-extras install -y epel && sudo yum -y install ansible;
+                    '''
+                )
+    
             core.CfnOutput(
             self, f"InstanceIP{i}",
             value=f"ssh -i \"{ssh_key_name}.pem\" ec2-user@{ec2_instance.instance_public_ip}"
@@ -105,7 +155,6 @@ class EC2Instance(core.Stack):
 
         s3buckets = S3BucketsConstruct(self, "S3Bucket", num_buckets=0)
         ssm_association = SSMAssociationConstruct(self, "SSMAssociation",
-                                                  ec2_instance_name=ec2_instance,
                                                   ec2_tag_key=ec2_tag_key,
                                                   ec2_tag_value=ec2_tag_value,
                                                   playbook_url=playbook_url
