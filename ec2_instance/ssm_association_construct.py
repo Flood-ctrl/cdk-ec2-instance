@@ -28,13 +28,13 @@ class SSMAssociationConstruct(core.Construct):
                                 "ScheduleExpression": "cron(0 0/30 * * * ? *)",
                                 "Parameters" : {
                                     "playbookurl":[playbook_url],
-                                },
+                                    },
                                 "Targets" : [{
                                     "Key": f"tag:{ec2_tag_key}",
                                     "Values": [f"{ec2_tag_value}"]
-                                }]
-                              }
+                                    }]
+                                  }
+                            }
                         }
                     }
-                }
-            )
+                )
