@@ -39,31 +39,31 @@ class EC2Instance(core.Stack):
         else:
             ami_map_value = {aws_region: parameter_store.string_value}
 
-        # vpc = ec2.Vpc(
-        #     self, "MyEC2Vpc",
-        #     max_azs=2,
-        #     nat_gateways=0,
-        #     enable_dns_hostnames=True,
-        #     enable_dns_support=True,
-        #     subnet_configuration=[ec2.SubnetConfiguration(
-        #         name="EC2PublicSubnet",
-        #         subnet_type= ec2.SubnetType.PUBLIC,
-        #         cidr_mask= 28,
-        #     ),
-        #     ],
-        # )
+        vpc = ec2.Vpc(
+            self, "MyEC2Vpc",
+            max_azs=2,
+            nat_gateways=0,
+            enable_dns_hostnames=True,
+            enable_dns_support=True,
+            subnet_configuration=[ec2.SubnetConfiguration(
+                name="EC2PublicSubnet",
+                subnet_type= ec2.SubnetType.PUBLIC,
+                cidr_mask= 28,
+            ),
+            ],
+        )
 
-        # security_group = ec2.SecurityGroup(
-        #     self, "SecurityGroup",
-        #     vpc=vpc,
-        #     allow_all_outbound=True,
-        # )
+        security_group = ec2.SecurityGroup(
+            self, "SecurityGroup",
+            vpc=vpc,
+            allow_all_outbound=True,
+        )
 
-        # security_group.add_ingress_rule(
-        #     peer=ec2.Peer.any_ipv4(),
-        #     connection=ec2.Port.tcp(22),
-        #     description="Allow all traffic"
-        # )
+        security_group.add_ingress_rule(
+            peer=ec2.Peer.any_ipv4(),
+            connection=ec2.Port.tcp(22),
+            description="Allow all traffic"
+        )
 
         ec2_user_data = ec2.UserData.for_linux()
 

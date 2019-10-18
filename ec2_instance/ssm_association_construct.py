@@ -11,7 +11,7 @@ class SSMAssociationConstruct(core.Construct):
     def __init__(self, scope: core.Construct, id: str, 
                  playbook_url: str,
                  ec2_tag_key: str,
-                 ec2_tag_value: str,
+                 ec2_tag_value: list,
                  **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
@@ -31,7 +31,7 @@ class SSMAssociationConstruct(core.Construct):
                                     },
                                 "Targets" : [{
                                     "Key": f"tag:{ec2_tag_key}",
-                                    "Values": [f"{ec2_tag_value}"]
+                                    "Values": ec2_tag_value
                                     }]
                                   }
                             }

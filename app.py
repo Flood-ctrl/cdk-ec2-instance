@@ -8,8 +8,8 @@ from lambda_ssm.lambda_ssm_construct import LambdaSsmConstruct
 app = core.App()
 EC2Instance(app, "ec2-instance-1", env={'region': 'us-east-1'}, 
             ec2_tag_key="CDK-Type",
-            ec2_tag_value="EC2Instance",
-            instances_count=0,
+            ec2_tag_value=["EC2Instance"],
+            instances_count=1,
             ssm_using=True,
             )
 
