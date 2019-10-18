@@ -16,7 +16,7 @@ from lambda_ssm.lambda_ssm_construct import LambdaSsmConstruct
 class EC2Instance(core.Stack):
 
     def __init__(self, scope: core.Construct, id: str, 
-                 ec2_tag_key="cdk", ec2_tag_value="instance", playbook_url=None,
+                 ec2_tag_key="cdk", ec2_tag_value=["instance"], playbook_url=None,
                  instances_count=1, ssm_using=None,
                  **kwargs) -> None:
         super().__init__(scope, id, **kwargs)

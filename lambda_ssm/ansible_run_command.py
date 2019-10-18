@@ -1,19 +1,21 @@
 import boto3
+import os
+import logging
 
-
-def handler(event, context, ec2_tag_key: str, ec2_tag_value: str, 
-            playbook_url: list,):
+def handler(event, context):
     ssm_client = boto3.client('ssm')
+    logs = logging
+    logs.debug(event)
     response = ssm_client.send_command(
                 Targets=[
                     {
-                        'Key': f'tag:{ec2_tag_key}',
-                        'Values': ec2_tag_value
+                        'Key': 'tag:'+ os.environ['ec2_tag_key'],
+                        'Values': [os.environ['ec2_tag_value']]
                         }
                     ],
                 DocumentName='AWS-RunAnsiblePlaybook',
                 Parameters={
-                    'playbookurl':[playbook_url],
+                    'playbookurl': [os.environ['playbook_url']],
                     }, 
         )
     
