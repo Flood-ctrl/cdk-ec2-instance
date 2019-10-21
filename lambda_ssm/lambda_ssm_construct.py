@@ -8,7 +8,11 @@ from aws_cdk import (
 
 class LambdaSsmConstruct(core.Construct):
 
-    def __init__(self, scope: core.Construct, id: str, **kwargs) -> None:
+    def __init__(self, scope: core.Construct, id: str,
+                 ec2_tag_key: str, ec2_tag_value: str,
+                 playbook_url: str,
+                 log_level: str,
+                 **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
         lambda_ssm = _lambda.Function(
@@ -16,7 +20,22 @@ class LambdaSsmConstruct(core.Construct):
             runtime=_lambda.Runtime.PYTHON_3_7,
             code=_lambda.Code.asset('lambda_ssm'),
             handler="ansible_run_command.handler",
+            environment={
+                "LOGLEVEL": f'{log_level}',
+                "EC2_TAG_KEY": f'{ec2_tag_key}',
+                "EC2_TAG_VALUE": f'{ec2_tag_value}',
+                "PLAYBOOK_URL": f'{playbook_url}',
+            }
         )
+
+        # lambda_ssm.add_environment(
+        #     {
+        #         "LOGLEVEL": log_level,
+        #         "EC2_TAG_KEY": ec2_tag_key,
+        #         "EC2_TAG_VALUE": ec2_tag_value,
+        #         "PLAYBOOK_URL": playbook_url
+        #     }
+        # )
 
         lambda_ssm.add_to_role_policy(
             statement=_iam.PolicyStatement(

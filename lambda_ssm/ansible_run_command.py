@@ -2,28 +2,32 @@ import boto3
 import os
 import logging
 
-logging.basicConfig(level=logging.DEBUG,
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logger.setLevel(os.environ.get('LOGLEVEL')),
                     format='[%(levelname)s] : %(name)s : %(asctime)s : %(message)s',)
 
 def handler(event, context):
-    ssm_client = boto3.client('ssm')
-    logger = logging.getLogger(__name__)
     logger.debug(event)
+    logger.info('Start executing handler')
+    ssm_client = boto3.client('ssm')
+    logger.info('ssm_client.send_command')
     response = ssm_client.send_command(
                 Targets=[
                     {
-                        'Key': 'tag:'+ os.environ['ec2_tag_key'],
-                        'Values': [os.environ['ec2_tag_value']]
+                        'Key': 'tag:'+ os.environ['EC2_TAG_KEY'],
+                        'Values': [os.environ['EC2_TAG_VALUE']]
                         }
                     ],
                 DocumentName='AWS-RunAnsiblePlaybook',
                 Parameters={
-                    'playbookurl': [os.environ['playbook_url']],
+                    'playbookurl': [os.environ['PLAYBOOK_URL']],
                     }, 
         )
-    
+    logger.debug(response)
+    logger.info('context.aws_request_id')
     command_id = context.aws_request_id
     print(response)
+    logger.info('Returning status code')
     return {
         'statusCode': 200,
         'headers': {
