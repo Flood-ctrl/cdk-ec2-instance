@@ -2,10 +2,13 @@ import boto3
 import os
 import logging
 
+logging.basicConfig(level=logging.DEBUG,
+                    format='[%(levelname)s] : %(name)s : %(asctime)s : %(message)s',)
+
 def handler(event, context):
     ssm_client = boto3.client('ssm')
-    logs = logging
-    logs.debug(event)
+    logger = logging.getLogger(__name__)
+    logger.debug(event)
     response = ssm_client.send_command(
                 Targets=[
                     {
