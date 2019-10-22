@@ -1,9 +1,12 @@
+import json
 from aws_cdk import (
     core,
-    aws_lambda as _lambda,
     aws_s3 as _s3,
-    aws_s3_notifications as _s3_notifications,
     aws_iam as _iam,
+    aws_events as _events,
+    aws_lambda as _lambda,
+    aws_events_targets as _events_targets,
+    aws_s3_notifications as _s3_notifications,
 )
 
 class LambdaSsmConstruct(core.Construct):
@@ -94,9 +97,22 @@ class LambdaSsmConstruct(core.Construct):
 
         s3.add_event_notification(_s3.EventType.OBJECT_CREATED, notification)
 
+        cloudwatch_event = _events.Rule(
+            self, "CloudWatchEvent",
+            enabled=True,
+            event_pattern=_events.EventPattern(
+                source=["aws.ec2"],
+                detail_type=["EC2 Instance State-change Notification"],
+                detail={
+                    "state": ["running"]
+                }
+            ),
+            targets=[_events_targets.LambdaFunction(lambda_ssm)]
+        )
+
         s3_bucket_path = core.CfnOutput(
             self, "S3PlaybookPath",
-            value=f's3://{s3.bucket_name}'
+            value=f'aws s3 cp ~/Downloads/playbook.yml s3://{s3.bucket_name}'
         )
 
         s3_bucket_console_url = core.CfnOutput(
