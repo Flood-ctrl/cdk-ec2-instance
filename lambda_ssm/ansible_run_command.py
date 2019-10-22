@@ -37,3 +37,10 @@ def handler(event, context):
         },
         'body': 'Done {}\n'.format(event)
     }
+
+
+def event_checker(event1):
+    dict_event = event1
+    if dict_event['detail-type'] == 'EC2 Instance State-change Notification' and dict_event['detail']['state'] == 'running':
+        print(dict_event)
+
