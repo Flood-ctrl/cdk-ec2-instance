@@ -28,6 +28,7 @@ def handler(event, context):
     logger.info('context.aws_request_id')
     command_id = context.aws_request_id
     print(response)
+    print(event)
     logger.info('Returning status code')
     return {
         'statusCode': 200,
