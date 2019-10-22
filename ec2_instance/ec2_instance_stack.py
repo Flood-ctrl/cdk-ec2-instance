@@ -17,6 +17,7 @@ class EC2Instance(core.Stack):
 
     def __init__(self, scope: core.Construct, id: str, 
                  ec2_tag_key="cdk", ec2_tag_value=["instance"], playbook_url=None,
+                 playbook_file_name=None,
                  instances_count=1, ssm_policy=None, log_level='INFO',
                  **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
@@ -154,7 +155,9 @@ class EC2Instance(core.Stack):
         lambda_ssm = LambdaSsmConstruct(self, "LambdaSsm", 
                                         ec2_tag_key=ec2_tag_key,
                                         ec2_tag_value=ec2_tag_value, 
-                                        playbook_url=playbook_url, log_level=log_level)
+                                        playbook_url=playbook_url,
+                                        log_level=log_level,
+                                        playbook_file_name=playbook_file_name)
 
 #aws ec2 describe-images --region us-east-1 --owners 099720109477 --filters 'Name=name,Values=ubuntu/images/hvm-ssd/ubuntu-xenial-16.04-amd64-server-????????' 'Name=state,Values=available' | head -n50
 #aws ec2 describe-images --region us-east-1 --owners amazon --filters 'Name=name,Values=amzn2-ami-hvm-2.0.????????-x86_64-gp2' 'Name=state,Values=available' --query 'reverse(sort_by(Images, &CreationDate))[:1].ImageId' --output text

@@ -10,10 +10,34 @@ class LambdaSsmConstruct(core.Construct):
 
     def __init__(self, scope: core.Construct, id: str,
                  ec2_tag_key: str, ec2_tag_value: str,
-                 playbook_url: str,
+                 playbook_url: str, playbook_file_name: str,
                  log_level: str,
                  **kwargs) -> None:
+        """Creates a new construct node.
+
+        :param scope: The scope in which to define this construct.
+        :param id: The scoped construct ID. Must be unique amongst siblings. If the ID includes a path separator (``/``), then it will be replaced by double dash ``--``.
+        :param playbook_url: S3 URL to Ansible playbook.
+        :param playbook_file_name: Ansible playbook file name, if playbook_url is not None playbook_file_name is skipping.
+        """
         super().__init__(scope, id, **kwargs)
+
+        def get_s3_bucket_name(self):
+            self.playbook_url = playbook_url
+            if playbook_url is not None:
+                splited_playbook_url = playbook_url.split("/")
+                s3_bucket_name = splited_playbook_url[2]
+            else:
+                s3_bucket_name = None
+            return s3_bucket_name
+
+        s3 = _s3.Bucket(
+        self, "s3TestBucketRuAnsPl12",
+        bucket_name=get_s3_bucket_name(self)
+        )
+
+        if playbook_url is None:
+            playbook_url = f's3://{s3.bucket_name}/{playbook_file_name}'
 
         lambda_ssm = _lambda.Function(
             self, "S3TriggerHandler",
@@ -27,15 +51,6 @@ class LambdaSsmConstruct(core.Construct):
                 "PLAYBOOK_URL": f'{playbook_url}',
             }
         )
-
-        # lambda_ssm.add_environment(
-        #     {
-        #         "LOGLEVEL": log_level,
-        #         "EC2_TAG_KEY": ec2_tag_key,
-        #         "EC2_TAG_VALUE": ec2_tag_value,
-        #         "PLAYBOOK_URL": playbook_url
-        #     }
-        # )
 
         lambda_ssm.add_to_role_policy(
             statement=_iam.PolicyStatement(
@@ -72,14 +87,19 @@ class LambdaSsmConstruct(core.Construct):
                     )
                 )
 
-
-        s3 = _s3.Bucket(
-            self, "s3TestBucketRuAnsPl12",
-            bucket_name="s3-testbucketruanspl1"
-            )
         
         s3.grant_read(lambda_ssm)
 
         notification = _s3_notifications.LambdaDestination(lambda_ssm)
 
         s3.add_event_notification(_s3.EventType.OBJECT_CREATED, notification)
+
+        s3_bucket_path = core.CfnOutput(
+            self, "S3PlaybookPath",
+            value=f's3://{s3.bucket_name}'
+        )
+
+        s3_bucket_console_url = core.CfnOutput(
+            self, "S3ConsoleUrl",
+            value=f's3.console.aws.amazon.com/s3/buckets/{s3.bucket_name}'
+        )

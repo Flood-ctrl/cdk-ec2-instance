@@ -18,6 +18,7 @@ def handler(event, context):
                         'Values': [os.environ['EC2_TAG_VALUE']]
                         }
                     ],
+                #OutputS3BucketName=[os.environ['S3Output']],
                 DocumentName='AWS-RunAnsiblePlaybook',
                 Parameters={
                     'playbookurl': [os.environ['PLAYBOOK_URL']],
