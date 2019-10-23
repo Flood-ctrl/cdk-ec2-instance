@@ -1,0 +1,20 @@
+{
+    "Resources": {
+    "SSMAssociation": {
+        "Type": "AWS::SSM::Association",
+        "Properties": {
+            "AssociationName" : "SSMRunPlaybook",
+            "Name": "AWS-RunAnsiblePlaybook",
+            "Parameters": {
+                "playbookurl":["s3://test-ansible-pl-hw/playbook.yml"]
+            },
+            "Targets":[
+                {
+                "Key": "tag:CDK-Type",
+                "Values": ["EC2Instance"]
+                }
+            ]
+            }
+    } 
+}
+}
