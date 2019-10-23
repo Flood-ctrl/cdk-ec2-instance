@@ -67,6 +67,12 @@ class EC2Instance(core.Stack):
         )
 
         ec2_user_data = ec2.UserData.for_linux()
+        ec2_user_data.add_commands(
+            '''
+                sudo systemctl start amazon-ssm-agent;
+                sudo amazon-linux-extras install -y epel && sudo yum -y install ansible;
+            '''
+          )
 
         for i in range(0, instances_count):
             ec2_instance = ec2.Instance(
@@ -130,18 +136,11 @@ class EC2Instance(core.Stack):
                         resources=["arn:aws:s3:::*"],
                     )
                 )
-                ec2_user_data.add_commands(
-                    '''
-                        sudo systemctl start amazon-ssm-agent;
-                        sudo amazon-linux-extras install -y epel && sudo yum -y install ansible;
-                    '''
-                )
     
             core.CfnOutput(
             self, f"InstanceIP{i}",
             value=f"ssh -i \"{ssh_key_name}.pem\" ec2-user@{ec2_instance.instance_public_ip}"
             )
-
 
         ec2_tags = core.Tag.add(
             self,
@@ -150,7 +149,7 @@ class EC2Instance(core.Stack):
             include_resource_types=["AWS::EC2::Instance"],
         )
 
-        s3buckets = S3BucketsConstruct(self, "S3Bucket", num_buckets=0)
+        # s3buckets = S3BucketsConstruct(self, "S3Bucket", num_buckets=0)
 
         lambda_ssm = LambdaSsmConstruct(self, "LambdaSsm", 
                                         ec2_tag_key=ec2_tag_key,
