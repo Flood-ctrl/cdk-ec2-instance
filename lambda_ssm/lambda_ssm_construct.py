@@ -79,6 +79,7 @@ class LambdaSsmConstruct(core.Construct):
                         "ssmmessages:CreateDataChannel",
                         "ssmmessages:OpenControlChannel",
                         "ssmmessages:OpenDataChannel",
+                        "ec2:DescribeInstances",
                         "ec2messages:AcknowledgeMessage",
                         "ec2messages:DeleteMessage",
                         "ec2messages:FailMessage",
