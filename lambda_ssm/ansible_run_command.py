@@ -40,6 +40,23 @@ def ssm_run_command_run_ansible_playbook(context):
     command_id = context.aws_request_id
     logger.debug(command_id)
 
+def ssm_run_command_run_ansible_playbook_instance(context, ec2_instance_id):
+    ssm_client = boto3.client('ssm')
+    logger.info('AWS-RunAnsiblePlaybook2')
+    logger.debug(ec2_instance_id)
+    ssm_command_response = ssm_client.send_command(
+        InstanceIds=[
+            ec2_instance_id,
+        ],
+        DocumentName='AWS-RunAnsiblePlaybook',
+        Parameters={
+            'playbookurl': [os.environ['PLAYBOOK_URL']],
+            }, 
+        )
+    logger.debug(ssm_command_response)
+    command_id = context.aws_request_id
+    logger.debug(command_id)
+
 
 def cw_event_tag_validator(event, context):
     logger.info('cw_event_tag_validator')
@@ -63,6 +80,6 @@ def cw_event_tag_validator(event, context):
             )
             logger.debug(ec2_event_response)
             if ec2_event_response['Reservations'] != []:
-                ssm_run_command_run_ansible_playbook(context)
+                ssm_run_command_run_ansible_playbook_instance(context,ec2_instance_id)
     else:
         ssm_run_command_run_ansible_playbook(context)
