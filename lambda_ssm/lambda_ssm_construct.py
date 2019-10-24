@@ -20,6 +20,9 @@ class LambdaSsmConstruct(core.Construct):
 
         :param scope: The scope in which to define this construct.
         :param id: The scoped construct ID. Must be unique amongst siblings. If the ID includes a path separator (``/``), then it will be replaced by double dash ``--``.
+        :param ec2_tag_key: Key for resources tag (key).
+        :param ec2_tag_value: Value for resource tag (value).
+        :param log_level: Log level for lambda function (INFO, DEBUG, etc)
         :param playbook_url: S3 URL to Ansible playbook.
         :param playbook_file_name: Ansible playbook file name, if playbook_url is not None playbook_file_name is skipping.
         """
@@ -35,7 +38,7 @@ class LambdaSsmConstruct(core.Construct):
             return s3_bucket_name
 
         s3 = _s3.Bucket(
-        self, "s3TestBucketRuAnsPl12",
+        self, "S3RunSsmCommandBucket",
         bucket_name=get_s3_bucket_name(self)
         )
 
@@ -113,7 +116,7 @@ class LambdaSsmConstruct(core.Construct):
 
         s3_bucket_path = core.CfnOutput(
             self, "S3PlaybookPath",
-            value=f'aws s3 cp ~/Downloads/playbook.yml s3://{s3.bucket_name}'
+            value=f's3://{s3.bucket_name}'
         )
 
         s3_bucket_console_url = core.CfnOutput(

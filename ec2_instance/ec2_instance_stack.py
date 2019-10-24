@@ -69,7 +69,7 @@ class EC2Instance(core.Stack):
         ec2_user_data = ec2.UserData.for_linux()
         ec2_user_data.add_commands(
             '''
-                sudo systemctl start amazon-ssm-agent;
+                #sudo systemctl start amazon-ssm-agent;
                 sudo amazon-linux-extras install -y epel && sudo yum -y install ansible;
             '''
           )
