@@ -38,7 +38,7 @@ class LambdaSsmConstruct(core.Construct):
             return s3_bucket_name
 
         s3 = _s3.Bucket(
-        self, "S3RunSsmCommandBucket",
+        self, "S3SsmRunCommandBucket",
         bucket_name=get_s3_bucket_name(self)
         )
 
