@@ -5,9 +5,8 @@ from aws_cdk import (
 
 class SharedVpcConstruct(core.Construct):
 
-    def __init__(self, scope: core.Construct, id: str, **kwargs) -> None:
+    def __init__(self, scope: core.Construct, id: str, shared_vpc, **kwargs) -> None:
 
-        shared_vpc = _ec2.Vpc.from_lookup(
-            self, "SharedVpc",
+        shared_vpc(
             vpc_id="vpc-0ae61f8eda26a121e"
         )

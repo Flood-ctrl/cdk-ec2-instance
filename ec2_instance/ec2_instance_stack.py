@@ -11,14 +11,22 @@ from variables import *
 from s3_buckets_construct import S3BucketsConstruct
 from ssm_association_construct import SSMAssociationConstruct
 from lambda_ssm.lambda_ssm_construct import LambdaSsmConstruct
+from shared_vpc.shared_vpc_construct import SharedVpcConstruct
 
 
 class EC2Instance(core.Stack):
 
     def __init__(self, scope: core.Construct, id: str, 
-                 ec2_tag_key="cdk", ec2_tag_value=["instance"], playbook_url=None,
+                 ec2_tag_key="cdk", 
+                 ec2_tag_value=["instance"], 
+                 playbook_url=None,
                  playbook_file_name=None,
-                 instances_count=1, ssm_policy=None, log_level='INFO',
+                 vpc_id: str =None,
+                 vpc_name: str =None,
+                 private_subnet_names: list =None,
+                 instances_count=1,
+                 ssm_policy=None,
+                 log_level='INFO',
                  **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
@@ -40,31 +48,48 @@ class EC2Instance(core.Stack):
         else:
             ami_map_value = {aws_region: parameter_store.string_value}
 
-        vpc = ec2.Vpc(
-            self, "MyEC2Vpc",
-            max_azs=2,
-            nat_gateways=0,
-            enable_dns_hostnames=True,
-            enable_dns_support=True,
-            subnet_configuration=[ec2.SubnetConfiguration(
-                name="EC2PublicSubnet",
-                subnet_type= ec2.SubnetType.PUBLIC,
-                cidr_mask= 28,
-            ),
-            ],
-        )
+        # vpc = ec2.Vpc(
+        #     self, "MyEC2Vpc",
+        #     max_azs=2,
+        #     nat_gateways=0,
+        #     enable_dns_hostnames=True,
+        #     enable_dns_support=True,
+        #     subnet_configuration=[ec2.SubnetConfiguration(
+        #         name="EC2PublicSubnet",
+        #         subnet_type= ec2.SubnetType.PUBLIC,
+        #         cidr_mask= 28,
+        #     ),
+        #     ],
+        # )
 
-        security_group = ec2.SecurityGroup(
-            self, "SecurityGroup",
-            vpc=vpc,
-            allow_all_outbound=True,
-        )
+        #vpc = ec2.Vpc.from_lookup(SharedVpcConstruct, "SharedVpc")
 
-        security_group.add_ingress_rule(
-            peer=ec2.Peer.any_ipv4(),
-            connection=ec2.Port.tcp(22),
-            description="Allow all traffic"
-        )
+        # vpc2 = ec2.Vpc.from_lookup(
+        #     self, "SharedVpc1",
+        #     #vpc_id=vpc_id,
+        #     vpc_name=vpc_name,
+        #     )
+
+        # vpc_subnets = ec2.Vpc.from_vpc_attributes(
+        #     self, "VpcSubnets",
+        #     vpc_id=vpc.vpc_id,
+        #     availability_zones=['us-east-1f', 'us-east-1e'],
+        #     #private_subnet_names=['shared_subnet1']#private_subnet_names,
+        #     #private_subnet_ids=['subnet-06ac7d805b45ab019'],
+        # )
+
+
+        # security_group = ec2.SecurityGroup(
+        #     self, "SecurityGroup",
+        #     vpc=vpc2,
+        #     allow_all_outbound=True,
+        # )
+
+        # security_group.add_ingress_rule(
+        #     peer=ec2.Peer.any_ipv4(),
+        #     connection=ec2.Port.tcp(22),
+        #     description="Allow all traffic"
+        # )
 
         ec2_user_data = ec2.UserData.for_linux()
         ec2_user_data.add_commands(
@@ -77,18 +102,18 @@ class EC2Instance(core.Stack):
         for i in range(0, instances_count):
             ec2_instance = ec2.Instance(
                 self, f"EC2Instance{i}",
-                vpc=vpc,
-                security_group=security_group,
-                key_name=ssh_key_name,
+                vpc=vpc2,
+                #security_group=security_group,
+                #key_name=ssh_key_name,
                 instance_type=ec2.InstanceType(
                     instance_type_identifier="t2.micro",
                 ),
                 machine_image=ec2.GenericLinuxImage(
                     ami_map=ami_map_value,
                 ),
-                vpc_subnets=ec2.SubnetSelection(
-                    subnet_type=ec2.SubnetType.PUBLIC,
-                ),
+                # vpc_subnets=ec2.SubnetSelection(
+                #     subnet_type=ec2.SubnetType.PUBLIC,
+                #),
                 user_data=ec2_user_data,
             )
 
@@ -137,10 +162,10 @@ class EC2Instance(core.Stack):
                     )
                 )
     
-            core.CfnOutput(
-            self, f"InstanceIP{i}",
-            value=f"ssh -i \"{ssh_key_name}.pem\" ec2-user@{ec2_instance.instance_public_ip}"
-            )
+            # core.CfnOutput(
+            # self, f"InstanceIP{i}",
+            # value=f"ssh -i \"{ssh_key_name}.pem\" ec2-user@{ec2_instance.instance_public_ip}"
+            #)
 
         ec2_tags = core.Tag.add(
             self,
