@@ -64,11 +64,11 @@ class EC2Instance(core.Stack):
 
         #vpc = ec2.Vpc.from_lookup(SharedVpcConstruct, "SharedVpc")
 
-        # vpc2 = ec2.Vpc.from_lookup(
-        #     self, "SharedVpc1",
-        #     #vpc_id=vpc_id,
-        #     vpc_name=vpc_name,
-        #     )
+        vpc = ec2.Vpc.from_lookup(
+            self, "SharedVpc1",
+            #vpc_id=vpc_id,
+            vpc_name=vpc_name,
+            )
 
         # vpc_subnets = ec2.Vpc.from_vpc_attributes(
         #     self, "VpcSubnets",
@@ -81,7 +81,7 @@ class EC2Instance(core.Stack):
 
         # security_group = ec2.SecurityGroup(
         #     self, "SecurityGroup",
-        #     vpc=vpc2,
+        #     vpc=vpc,
         #     allow_all_outbound=True,
         # )
 
@@ -102,7 +102,7 @@ class EC2Instance(core.Stack):
         for i in range(0, instances_count):
             ec2_instance = ec2.Instance(
                 self, f"EC2Instance{i}",
-                vpc=vpc2,
+                vpc=vpc,
                 #security_group=security_group,
                 #key_name=ssh_key_name,
                 instance_type=ec2.InstanceType(

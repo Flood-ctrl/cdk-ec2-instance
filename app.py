@@ -8,7 +8,7 @@ from lambda_ssm.lambda_ssm_construct import LambdaSsmConstruct
 
 app = core.App()
 EC2Instance(app, "ec2-instance-1",
-            #vpc_name='shared_vpc',
+            vpc_name='shared_vpc',
             env={
                 'account': os.environ['CDK_ACCOUNT'],
                 'region': 'us-east-1'
