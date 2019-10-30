@@ -6,8 +6,6 @@ from aws_cdk import (
     aws_logs as logs,
 )
 
-from variables import *
-
 from s3_buckets_construct import S3BucketsConstruct
 from ssm_association_construct import SSMAssociationConstruct
 from lambda_ssm.lambda_ssm_construct import LambdaSsmConstruct
@@ -32,14 +30,6 @@ class EC2Instance(core.Stack):
         super().__init__(scope, id, **kwargs)
 
         aws_region = env['region']
-
-        # parameter_store = ssm.StringParameter(
-        #     self, "SsmAmiId",
-        #     parameter_name="AmiId",
-        #     string_value=ami_id,
-        #     type=ssm.ParameterType.STRING,
-        #     description="AMI ID for EC2 instance",
-        # )
 
         ami_id_parameter_store = ssm.StringParameter.from_string_parameter_name(
             self, "ExistingSsmAmidID",
