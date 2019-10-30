@@ -1,32 +1,20 @@
 {
-  "vpc-provider:account=846580235911:filter.vpc-id=vpc-05e8821d70df22335:region=us-east-1": {
-    "vpcId": "vpc-05e8821d70df22335",
-    "availabilityZones": [
-      "us-east-1f"
-    ],
-    "privateSubnetIds": [
-      "subnet-06ac7d805b45ab019"
-    ],
-    "privateSubnetNames": [
-      "Private"
-    ],
-    "privateSubnetRouteTableIds": [
-      "rtb-0288e7ae5ec712717"
-    ]
-  },
   "vpc-provider:account=846580235911:filter.tag:Name=shared_vpc:region=us-east-1": {
-    "vpcId": "vpc-05e8821d70df22335",
+    "vpcId": "vpc-0b38b12319bf47d79",
     "availabilityZones": [
+      "us-east-1e",
       "us-east-1f"
     ],
     "privateSubnetIds": [
-      "subnet-06ac7d805b45ab019"
+      "subnet-0830e74b0217be763",
+      "subnet-0b0d12a344cd55cce"
     ],
     "privateSubnetNames": [
       "Private"
     ],
     "privateSubnetRouteTableIds": [
-      "rtb-0288e7ae5ec712717"
+      "rtb-013aad80922a1b416",
+      "rtb-013aad80922a1b416"
     ]
   }
 }

@@ -48,119 +48,126 @@ class EC2Instance(core.Stack):
         else:
             ami_map_value = {aws_region: parameter_store.string_value}
 
-        # vpc = ec2.Vpc(
-        #     self, "MyEC2Vpc",
-        #     max_azs=2,
-        #     nat_gateways=0,
-        #     enable_dns_hostnames=True,
-        #     enable_dns_support=True,
-        #     subnet_configuration=[ec2.SubnetConfiguration(
-        #         name="EC2PublicSubnet",
-        #         subnet_type= ec2.SubnetType.PUBLIC,
-        #         cidr_mask= 28,
-        #     ),
-        #     ],
-        # )
-
-        #vpc = ec2.Vpc.from_lookup(SharedVpcConstruct, "SharedVpc")
-
         vpc = ec2.Vpc.from_lookup(
-            self, "SharedVpc1",
-            #vpc_id=vpc_id,
+            self, "SharedVpc",
             vpc_name=vpc_name,
             )
 
-        # vpc_subnets = ec2.Vpc.from_vpc_attributes(
-        #     self, "VpcSubnets",
-        #     vpc_id=vpc.vpc_id,
-        #     availability_zones=['us-east-1f', 'us-east-1e'],
-        #     #private_subnet_names=['shared_subnet1']#private_subnet_names,
-        #     #private_subnet_ids=['subnet-06ac7d805b45ab019'],
-        # )
+        vpc_subnets = ec2.Vpc.from_vpc_attributes(
+            self, "VpcSubnets",
+            vpc_id=vpc.vpc_id,
+            availability_zones=vpc.availability_zones,
+            #private_subnet_names=vpc.private_subnets
+            #private_subnet_names=['shared_subnet1']#private_subnet_names,
+            private_subnet_ids=['subnet-0b0d12a344cd55cce', 'subnet-0830e74b0217be763'],
+        )
 
+        print(vpc.private_subnets)
 
-        # security_group = ec2.SecurityGroup(
-        #     self, "SecurityGroup",
-        #     vpc=vpc,
-        #     allow_all_outbound=True,
-        # )
-
-        # security_group.add_ingress_rule(
-        #     peer=ec2.Peer.any_ipv4(),
-        #     connection=ec2.Port.tcp(22),
-        #     description="Allow all traffic"
-        # )
 
         ec2_user_data = ec2.UserData.for_linux()
-        ec2_user_data.add_commands(
-            '''
-                #sudo systemctl start amazon-ssm-agent;
-                sudo amazon-linux-extras install -y epel && sudo yum -y install ansible;
-            '''
-          )
 
-        for i in range(0, instances_count):
-            ec2_instance = ec2.Instance(
-                self, f"EC2Instance{i}",
-                vpc=vpc,
-                #security_group=security_group,
-                #key_name=ssh_key_name,
-                instance_type=ec2.InstanceType(
-                    instance_type_identifier="t2.micro",
-                ),
-                machine_image=ec2.GenericLinuxImage(
-                    ami_map=ami_map_value,
-                ),
-                # vpc_subnets=ec2.SubnetSelection(
-                #     subnet_type=ec2.SubnetType.PUBLIC,
-                #),
-                user_data=ec2_user_data,
-            )
 
-            if ssm_policy is not None:
-                ec2_instance.add_to_role_policy(
-                statement=iam.PolicyStatement(
-                    effect=iam.Effect.ALLOW,
-                    actions=[
-                    "ssm:DescribeAssociation",
-                    "ssm:GetDeployablePatchSnapshotForInstance",
-                    "ssm:GetDocument",
-                    "ssm:DescribeDocument",
-                    "ssm:GetManifest",
-                    "ssm:GetParameter",
-                    "ssm:GetParameters",
-                    "ssm:ListAssociations",
-                    "ssm:ListInstanceAssociations",
-                    "ssm:PutInventory",
-                    "ssm:PutComplianceItems",
-                    "ssm:PutConfigurePackageResult",
-                    "ssm:UpdateAssociationStatus",
-                    "ssm:UpdateInstanceAssociationStatus",
-                    "ssm:UpdateInstanceInformation",
-                    "ssmmessages:CreateControlChannel",
-                    "ssmmessages:CreateDataChannel",
-                    "ssmmessages:OpenControlChannel",
-                    "ssmmessages:OpenDataChannel",
-                    "ec2messages:AcknowledgeMessage",
-                    "ec2messages:DeleteMessage",
-                    "ec2messages:FailMessage",
-                    "ec2messages:GetEndpoint",
-                    "ec2messages:GetMessages",
-                    "ec2messages:SendReply",
-                    ],
-                    resources=["*"],
-                    )
-                )
-                ec2_instance.add_to_role_policy(
-                    statement=iam.PolicyStatement(
-                        effect=iam.Effect.ALLOW,
-                        actions=[
-                            "s3:GetObject",
-                            "s3:GetBucketLocation"
-                        ],
-                        resources=["arn:aws:s3:::*"],
-                    )
-                )
+        ec2_instance = ec2.Instance(
+            self, f"EC2InstanceNginx1",
+            vpc=vpc,
+            #availability_zone=vpc_subnets.availability_zones[0],
+            #security_group=security_group,
+            #key_name=ssh_key_name,
+            instance_type=ec2.InstanceType(
+                instance_type_identifier="t2.micro",
+            ),
+            machine_image=ec2.GenericLinuxImage(
+                ami_map=ami_map_value,
+            ),
+            vpc_subnets=ec2.SubnetSelection(
+                subnet_name='shared1',
+                sub
+            ),
+            user_data=ec2_user_data,
+        )
+
+        ec2_instance = ec2.Instance(
+            self, f"EC2InstanceNginx2",
+            vpc=vpc,
+            #availability_zone=vpc_subnets.availability_zones[1],
+            #security_group=security_group,
+            #key_name=ssh_key_name,
+            instance_type=ec2.InstanceType(
+                instance_type_identifier="t2.micro",
+            ),
+            machine_image=ec2.GenericLinuxImage(
+                ami_map=ami_map_value,
+            ),
+            # vpc_subnets=ec2.SubnetSelection(
+            #     subnet_type=ec2.SubnetType.PUBLIC,
+            #),
+            user_data=ec2_user_data,
+        )
+
+        # for i in range(0, instances_count):
+        #     ec2_instance = ec2.Instance(
+        #         self, f"EC2Instance{i}",
+        #         vpc=vpc,
+        #         availability_zone=vpc_subnets.availability_zones[0],
+        #         #security_group=security_group,
+        #         #key_name=ssh_key_name,
+        #         instance_type=ec2.InstanceType(
+        #             instance_type_identifier="t2.micro",
+        #         ),
+        #         machine_image=ec2.GenericLinuxImage(
+        #             ami_map=ami_map_value,
+        #         ),
+        #         # vpc_subnets=ec2.SubnetSelection(
+        #         #     subnet_type=ec2.SubnetType.PUBLIC,
+        #         #),
+        #         user_data=ec2_user_data,
+        #     )
+
+            # if ssm_policy is not None:
+            #     ec2_instance.add_to_role_policy(
+            #     statement=iam.PolicyStatement(
+            #         effect=iam.Effect.ALLOW,
+            #         actions=[
+            #         "ssm:DescribeAssociation",
+            #         "ssm:GetDeployablePatchSnapshotForInstance",
+            #         "ssm:GetDocument",
+            #         "ssm:DescribeDocument",
+            #         "ssm:GetManifest",
+            #         "ssm:GetParameter",
+            #         "ssm:GetParameters",
+            #         "ssm:ListAssociations",
+            #         "ssm:ListInstanceAssociations",
+            #         "ssm:PutInventory",
+            #         "ssm:PutComplianceItems",
+            #         "ssm:PutConfigurePackageResult",
+            #         "ssm:UpdateAssociationStatus",
+            #         "ssm:UpdateInstanceAssociationStatus",
+            #         "ssm:UpdateInstanceInformation",
+            #         "ssmmessages:CreateControlChannel",
+            #         "ssmmessages:CreateDataChannel",
+            #         "ssmmessages:OpenControlChannel",
+            #         "ssmmessages:OpenDataChannel",
+            #         "ec2messages:AcknowledgeMessage",
+            #         "ec2messages:DeleteMessage",
+            #         "ec2messages:FailMessage",
+            #         "ec2messages:GetEndpoint",
+            #         "ec2messages:GetMessages",
+            #         "ec2messages:SendReply",
+            #         ],
+            #         resources=["*"],
+            #         )
+            #     )
+            #     ec2_instance.add_to_role_policy(
+            #         statement=iam.PolicyStatement(
+            #             effect=iam.Effect.ALLOW,
+            #             actions=[
+            #                 "s3:GetObject",
+            #                 "s3:GetBucketLocation"
+            #             ],
+            #             resources=["arn:aws:s3:::*"],
+            #         )
+            #     )
     
             # core.CfnOutput(
             # self, f"InstanceIP{i}",
