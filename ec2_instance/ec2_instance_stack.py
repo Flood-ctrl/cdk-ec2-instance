@@ -40,8 +40,8 @@ class EC2Instance(core.Stack):
         )
 
         def ec2_cfn_instance(id, 
-                             subnet_id: str=None,
                              key_name: str=None,
+                             subnet_id: str=None,
                              user_data: str=None,
                              instance_name: str='ec2-instance', 
                              instance_type: str='t2.micro') -> ec2.CfnInstance:
