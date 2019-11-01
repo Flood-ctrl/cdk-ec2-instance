@@ -1,4 +1,5 @@
 import os
+import base64
 from aws_cdk import (
     core,
     aws_ec2 as ec2,
@@ -15,11 +16,20 @@ class EC2CfnInstanceConstruct(core.Construct):
                  key_name: str=None,
                  subnet_id: str=None,
                  user_data: str=None,
+                 user_data_file_name: str=None,
                  security_group_ids :list=None,
                  instance_name: str='ec2-instance',
                  instance_type: str='t2.micro',
                  **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
+
+
+        if user_data_file_name is not None:
+            assert user_data is None, "user_data and user_data_file_name are both defined!"
+            cwd = os.getcwd()
+            with open(f'{cwd}/ec2_instance_userdata/{user_data_file_name}', 'r') as file:
+                userdata = file.read()
+            user_data = base64.b64encode(userdata.encode("ascii")).decode('ascii')
 
         ec2_cfn_instance = ec2.CfnInstance(
             self, ec2_cfn_instance_id,
@@ -27,6 +37,7 @@ class EC2CfnInstanceConstruct(core.Construct):
             user_data=user_data,
             image_id=image_id,
             instance_type=instance_type,
+            security_group_ids=security_group_ids,
             subnet_id=subnet_id,
             tags=[
                 core.CfnTag(
