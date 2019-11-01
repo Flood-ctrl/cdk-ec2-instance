@@ -23,7 +23,7 @@ class EC2Instance(core.Stack):
         jenkins = EC2CfnInstanceConstruct(self, "JenkinsInstance", 
                                           ec2_cfn_instance_id="Jenkins", 
                                           image_id='ami-0b898040803850657',
-                                          user_data_file_name='user_data.sh',
+                                          user_data_file='user_data.sh',
                                           key_name="cdk-us-east-1",
                                           security_group_ids=['sg-0f0c525ba2aca0a1a',
                                                              ],

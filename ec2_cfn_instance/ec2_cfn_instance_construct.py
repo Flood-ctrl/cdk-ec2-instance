@@ -16,7 +16,7 @@ class EC2CfnInstanceConstruct(core.Construct):
                  aws_region: str=None,
                  ec2_tag_key: str=None, 
                  ec2_tag_value: str=None,
-                 user_data_file_name: str=None,
+                 user_data_file: str=None,
                  security_group_ids :list=None,
                  iam_instance_profile :str=None,
                  ssm_quick_setup_role: bool=False,
@@ -32,10 +32,10 @@ class EC2CfnInstanceConstruct(core.Construct):
             assert iam_instance_profile is None, caution_message('iam_instance_profile', 'ssm_quick_setup_role')
             iam_instance_profile = 'AmazonSSMRoleForInstancesQuickSetup'
 
-        if user_data_file_name is not None:
-            assert user_data is None, caution_message('user_data', 'user_data_file_name')
+        if user_data_file is not None:
+            assert user_data is None, caution_message('user_data', 'user_data_file')
             cwd = os.getcwd()
-            with open(f'{cwd}/{user_data_file_name}', 'r') as file:
+            with open(f'{cwd}/{user_data_file}', 'r') as file:
                 userdata = file.read()
             user_data = base64.b64encode(userdata.encode("ascii")).decode('ascii')
 
