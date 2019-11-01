@@ -1,3 +1,4 @@
+import os
 from aws_cdk import (
     core,
     aws_ec2 as ec2,
@@ -14,6 +15,7 @@ class EC2CfnInstanceConstruct(core.Construct):
                  key_name: str=None,
                  subnet_id: str=None,
                  user_data: str=None,
+                 security_group_ids :list=None,
                  instance_name: str='ec2-instance',
                  instance_type: str='t2.micro',
                  **kwargs) -> None:
