@@ -21,15 +21,19 @@ class EC2CfnInstanceConstruct(core.Construct):
                  iam_instance_profile :str=None,
                  ssm_quick_setup_role: bool=False,
                  instance_type: str='t2.micro',
-                 instance_name: str='ec2-instance',
+                 instance_name: str='cdk-ec2-instance',
                  **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
+        def caution_message(variable_1, variable_2):
+            print(f'{variable_1} and {variable_2} are both defined!')
+
         if ssm_quick_setup_role:
+            assert iam_instance_profile is None, caution_message('iam_instance_profile', 'ssm_quick_setup_role')
             iam_instance_profile = 'AmazonSSMRoleForInstancesQuickSetup'
 
         if user_data_file_name is not None:
-            assert user_data is None, 'user_data and user_data_file_name are both defined!'
+            assert user_data is None, caution_message('user_data', 'user_data_file_name')
             cwd = os.getcwd()
             with open(f'{cwd}/{user_data_file_name}', 'r') as file:
                 userdata = file.read()
