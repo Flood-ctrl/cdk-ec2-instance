@@ -7,7 +7,7 @@ from aws_cdk import (
 
 class EC2CfnInstanceConstruct(core.Construct):
 
-    def __init__(self, scope: core.Construct, id: str,
+    def __init__(self, scope: core.Construct, ec2_cfn_instance_id: str,
                  image_id: str,
                  aws_region: str=None,
                  ec2_tag_key: str=None, 
@@ -21,7 +21,7 @@ class EC2CfnInstanceConstruct(core.Construct):
         super().__init__(scope, id, **kwargs)
 
         ec2_cfn_instance = ec2.CfnInstance(
-            self, id,
+            self, ec2_cfn_instance_id,
             key_name=key_name,
             user_data=user_data,
             image_id=image_id,

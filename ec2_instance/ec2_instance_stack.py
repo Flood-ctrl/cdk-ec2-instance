@@ -4,7 +4,7 @@ from aws_cdk import (
     aws_ssm as ssm,
 )
 
-from ec2_instance_construct import EC2CfnInstanceConstruct
+from ec2_cfn_instance_construct.ec2_cfn_instance_construct import EC2CfnInstanceConstruct
 
 
 class EC2Instance(core.Stack):
@@ -39,6 +39,6 @@ class EC2Instance(core.Stack):
             string_parameter_name="shared_subnet_2"
         )
 
-    jenkins = EC2CfnInstanceConstruct(self, id="JenkinsInstance", 
+    jenkins = EC2CfnInstanceConstruct(self, ec2_cfn_instance_id="JenkinsInstance", 
                                       image_id='asdadad', 
                                       instance_name="jenkins1")
