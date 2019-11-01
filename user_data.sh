@@ -6,4 +6,3 @@ for i in {0..3}; do
 done;
 yum install git -y
 yum install vim -y
-yum install apache -y
