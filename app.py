@@ -10,9 +10,7 @@ EC2Instance(app, "ec2-instance-1",
             env={
                 'account': os.environ['CDK_ACCOUNT'],
                 'region': 'us-east-1'
-            }, 
-            ec2_tag_key="CDK-Type",
-            ec2_tag_value="EC2Instance",
+            },
             )
 
 app.synth()
