@@ -19,6 +19,7 @@ class EC2CfnInstanceConstruct(core.Construct):
                  user_data_file: str=None,
                  security_group_ids :list=None,
                  iam_instance_profile :str=None,
+                 instances_count: int=1,
                  ssm_quick_setup_role: bool=False,
                  instance_type: str='t2.micro',
                  instance_name: str='cdk-ec2-instance',
@@ -32,6 +33,7 @@ class EC2CfnInstanceConstruct(core.Construct):
         :param user_data_file: The name of the file contains userdata. File should be placed on the same level of app.py. The path can be passed if file placed in dir.
         :param ec2_tag_key: The tag key for created EC2 instance.
         :param ec2_tag_value: The value of the tag key.
+        :instances_count: Count of instances should be created (default 1).
         :param ssm_quick_setup_role: If True, EC2 role for SSM for Quick-Setup will be attached to instance (default False).
         """
         super().__init__(scope, id, **kwargs)
@@ -50,27 +52,33 @@ class EC2CfnInstanceConstruct(core.Construct):
                 userdata = file.read()
             user_data = base64.b64encode(userdata.encode("ascii")).decode('ascii')
 
-        ec2_cfn_instance = ec2.CfnInstance(
-            self, ec2_cfn_instance_id,
-            key_name=key_name,
-            user_data=user_data,
-            image_id=image_id,
-            instance_type=instance_type,
-            security_group_ids=security_group_ids,
-            iam_instance_profile=iam_instance_profile,
-            subnet_id=subnet_id,
-            tags=[
-                core.CfnTag(
-                    key = 'Name',
-                    value = f'{instance_name}'
-                ),
-            ],
-        )
+        for i in range(0,instances_count):
+            if instances_count > 1:
+                tag_value = f'{instance_name}-{i}'
+            else:
+                tag_value = f'{instance_name}'
 
-        if ec2_tag_key and ec2_tag_value is not None:
-            ec2_instance_tags = core.Tag.add(
-                self,
-                key=ec2_tag_key,
-                value=ec2_tag_value,
-                include_resource_types=["AWS::EC2::Instance"],
+            ec2_cfn_instance = ec2.CfnInstance(
+                self, ec2_cfn_instance_id + f'{i}',
+                key_name=key_name,
+                user_data=user_data,
+                image_id=image_id,
+                instance_type=instance_type,
+                security_group_ids=security_group_ids,
+                iam_instance_profile=iam_instance_profile,
+                subnet_id=subnet_id,
+                tags=[
+                    core.CfnTag(
+                        key = 'Name',
+                        value = tag_value
+                    ),
+                ],
             )
+
+            if ec2_tag_key and ec2_tag_value is not None:
+                ec2_instance_tags = core.Tag.add(
+                    self,
+                    key=ec2_tag_key,
+                    value=ec2_tag_value,
+                    include_resource_types=["AWS::EC2::Instance"],
+                )
