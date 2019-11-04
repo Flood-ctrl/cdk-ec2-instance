@@ -3,8 +3,6 @@ from aws_cdk import (
     aws_ec2 as ec2,
     aws_ssm as ssm,
 )
-import os
-import base64
 
 from ec2_cfn_instance.ec2_cfn_instance_construct import EC2CfnInstanceConstruct
 

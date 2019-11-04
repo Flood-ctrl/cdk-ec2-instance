@@ -23,6 +23,17 @@ class EC2CfnInstanceConstruct(core.Construct):
                  instance_type: str='t2.micro',
                  instance_name: str='cdk-ec2-instance',
                  **kwargs) -> None:
+        """Creates EC2 instance by using aws_ec2.CfnInstance.
+
+        :param scope: The scope in which to define this construct.
+        :param id: The scoped construct ID. Must be unique amongst siblings. If the ID includes a path separator (``/``), then it will be replaced by double dash ``--``.
+        :param ec2_cfn_instance_id: EC2 resource ID. Must be unique.
+        :param user_data: String of userdata.
+        :param user_data_file: The name of the file contains userdata. File should be placed on the same level of app.py. The path can be passed if file placed in dir.
+        :param ec2_tag_key: The tag name for created EC2 instance.
+        :param ec2_tag_value: The value of the tag name.
+        :param ssm_quick_setup_role: If True, EC2 role for SSM for Quick-Setup will be attached to instance (default False).
+        """
         super().__init__(scope, id, **kwargs)
 
         def caution_message(variable_1, variable_2):
