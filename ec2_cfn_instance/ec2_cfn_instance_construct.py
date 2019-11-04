@@ -53,10 +53,10 @@ class EC2CfnInstanceConstruct(core.Construct):
             user_data = base64.b64encode(userdata.encode("ascii")).decode('ascii')
 
         for i in range(0,instances_count):
-            if instances_count > 1:
-                tag_value = f'{instance_name}-{i}'
-            else:
+            if i == 0:
                 tag_value = f'{instance_name}'
+            else:
+                tag_value = f'{instance_name}-{i}'
 
             ec2_cfn_instance = ec2.CfnInstance(
                 self, ec2_cfn_instance_id + f'{i}',
