@@ -30,8 +30,8 @@ class EC2CfnInstanceConstruct(core.Construct):
         :param ec2_cfn_instance_id: EC2 resource ID. Must be unique.
         :param user_data: String of userdata.
         :param user_data_file: The name of the file contains userdata. File should be placed on the same level of app.py. The path can be passed if file placed in dir.
-        :param ec2_tag_key: The tag name for created EC2 instance.
-        :param ec2_tag_value: The value of the tag name.
+        :param ec2_tag_key: The tag key for created EC2 instance.
+        :param ec2_tag_value: The value of the tag key.
         :param ssm_quick_setup_role: If True, EC2 role for SSM for Quick-Setup will be attached to instance (default False).
         """
         super().__init__(scope, id, **kwargs)

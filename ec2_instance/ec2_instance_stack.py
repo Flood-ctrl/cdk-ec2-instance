@@ -23,6 +23,7 @@ class EC2Instance(core.Stack):
                                           image_id='ami-0b898040803850657',
                                           user_data_file='user_data.sh',
                                           key_name="cdk-us-east-1",
+                                          ssm_quick_setup_role=True,
                                           security_group_ids=['sg-0f0c525ba2aca0a1a',
                                                              ],
                                           subnet_id=ssm_subnet_id.string_value)
