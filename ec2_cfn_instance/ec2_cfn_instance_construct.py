@@ -41,6 +41,14 @@ class EC2CfnInstanceConstruct(core.Construct):
         def caution_message(variable_1, variable_2):
             print(f'{variable_1} and {variable_2} are both defined!')
 
+        def skip_zero(i,instance_name):
+            if i == 0:
+                instance_name = f'{instance_name}'
+            else:
+                instance_name = f'{instance_name}-{i}'
+            print(instance_name)
+            return instance_name
+
         if ssm_quick_setup_role:
             assert iam_instance_profile is None, caution_message('iam_instance_profile', 'ssm_quick_setup_role')
             iam_instance_profile = 'AmazonSSMRoleForInstancesQuickSetup'
@@ -53,11 +61,6 @@ class EC2CfnInstanceConstruct(core.Construct):
             user_data = base64.b64encode(userdata.encode("ascii")).decode('ascii')
 
         for i in range(0,instances_count):
-            if i == 0:
-                tag_value = f'{instance_name}'
-            else:
-                tag_value = f'{instance_name}-{i}'
-
             ec2_cfn_instance = ec2.CfnInstance(
                 self, ec2_cfn_instance_id + f'{i}',
                 key_name=key_name,
@@ -70,7 +73,7 @@ class EC2CfnInstanceConstruct(core.Construct):
                 tags=[
                     core.CfnTag(
                         key = 'Name',
-                        value = tag_value
+                        value = skip_zero(i,instance_name)
                     ),
                 ],
             )
