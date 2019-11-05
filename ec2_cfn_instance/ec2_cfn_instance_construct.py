@@ -21,7 +21,7 @@ class EC2CfnInstanceConstruct(core.Construct):
                  iam_instance_profile :str=None,
                  instances_count: int=1,
                  ssm_quick_setup_role: bool=False,
-                 start_with_nil_ec2_name: bool=False,
+                 zero_in_postfix_ec2_name: bool=False,
                  instance_type: str='t2.micro',
                  instance_name: str='cdk-ec2-instance',
                  **kwargs) -> None:
@@ -36,14 +36,15 @@ class EC2CfnInstanceConstruct(core.Construct):
         :param ec2_tag_value: The value of the tag key.
         :instances_count: Count of instances should be created (default 1).
         :param ssm_quick_setup_role: If True, EC2 role for SSM for Quick-Setup will be attached to instance (default False).
+        :param zero_in_postfix_ec2_name: If true, zero (0) adds to postfix EC2 name (ec2_instace-0, ec2_instance-1 for example), if False (by default) postfix is starting with one (1) (ec2_instance, ec2_instance-1 for example).
         """
         super().__init__(scope, id, **kwargs)
 
         def caution_message(variable_1, variable_2):
             print(f'{variable_1} and {variable_2} are both defined!')
 
-        def ec2_instace_name_value(i,instance_name=instance_name, start_with_nil_ec2_name=start_with_nil_ec2_name):
-            if i == 0 and start_with_nil_ec2_name is False:
+        def ec2_instace_name_value(i,instance_name=instance_name, zero_in_postfix_ec2_name=zero_in_postfix_ec2_name):
+            if i == 0 and zero_in_postfix_ec2_name is False:
                 instance_name = f'{instance_name}'
             else:
                 instance_name = f'{instance_name}-{i}'
