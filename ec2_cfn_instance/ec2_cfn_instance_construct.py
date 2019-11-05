@@ -38,6 +38,12 @@ class EC2CfnInstanceConstruct(core.Construct):
         """
         super().__init__(scope, id, **kwargs)
 
+        if ec2_tags is not None:
+            try:
+                instance_name = ec2_tags['Name']
+            except KeyError:
+                instance_name = instance_name
+
         def caution_message(variable_1, variable_2):
             print(f'{variable_1} and {variable_2} are both defined!')
 
@@ -79,7 +85,9 @@ class EC2CfnInstanceConstruct(core.Construct):
             )
 
             if ec2_tags is not None:
-                for ec2_tag_key,ec2_tag_value in ec2_tags.items(): 
+                for ec2_tag_key,ec2_tag_value in ec2_tags.items():
+                    if ec2_tag_key == 'Name':
+                        continue
                     ec2_instance_tags = core.Tag.add(
                         self,
                         key=ec2_tag_key,
