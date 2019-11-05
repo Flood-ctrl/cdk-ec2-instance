@@ -22,8 +22,13 @@ class EC2Instance(core.Stack):
                                           ec2_cfn_instance_id="Jenkins", 
                                           image_id='ami-0b898040803850657',
                                           user_data_file='user_data.sh',
-                                          instances_count=1,
-                                          ec2_tag_key="CDK-TYPE",
-                                          ec2_tag_value='NGINX',
+                                          instances_count=3,
                                           ssm_quick_setup_role=True,
-                                          subnet_id=ssm_subnet_id.string_value)
+                                          subnet_id=ssm_subnet_id.string_value,
+                                          ec2_tags={
+                                              'Name': 'NGINX',
+                                              'CDK-TYPE': 'EC2-Instance',
+                                              'Provisioned': 'False',
+                                              'Test-purpose': 'True',
+                                          }
+                                          )

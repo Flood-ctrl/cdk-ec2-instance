@@ -14,14 +14,13 @@ class EC2CfnInstanceConstruct(core.Construct):
                  subnet_id: str=None,
                  user_data: str=None,
                  aws_region: str=None,
-                 ec2_tag_key: str=None, 
-                 ec2_tag_value: str=None,
                  user_data_file: str=None,
                  security_group_ids :list=None,
                  iam_instance_profile :str=None,
                  instances_count: int=1,
                  ssm_quick_setup_role: bool=False,
                  zero_in_postfix_ec2_name: bool=False,
+                 ec2_tags: dict=None,
                  instance_type: str='t2.micro',
                  instance_name: str='cdk-ec2-instance',
                  **kwargs) -> None:
@@ -32,8 +31,7 @@ class EC2CfnInstanceConstruct(core.Construct):
         :param ec2_cfn_instance_id: EC2 resource ID. Must be unique.
         :param user_data: String of userdata.
         :param user_data_file: The name of the file contains userdata. File should be placed on the same level of app.py. The path can be passed if file placed in dir.
-        :param ec2_tag_key: The tag key for created EC2 instance.
-        :param ec2_tag_value: The value of the tag key.
+        :param ec2_tags: The tags for created EC2 instance.
         :instances_count: Count of instances should be created (default 1).
         :param ssm_quick_setup_role: If True, EC2 role for SSM for Quick-Setup will be attached to instance (default False).
         :param zero_in_postfix_ec2_name: If true, zero (0) adds to postfix EC2 name (ec2_instace-0, ec2_instance-1 for example), if False (by default) postfix is starting with one (1) (ec2_instance, ec2_instance-1 for example).
@@ -80,10 +78,11 @@ class EC2CfnInstanceConstruct(core.Construct):
                 ],
             )
 
-            if ec2_tag_key and ec2_tag_value is not None:
-                ec2_instance_tags = core.Tag.add(
-                    self,
-                    key=ec2_tag_key,
-                    value=ec2_tag_value,
-                    include_resource_types=["AWS::EC2::Instance"],
-                )
+            if ec2_tags is not None:
+                for ec2_tag_key,ec2_tag_value in ec2_tags.items(): 
+                    ec2_instance_tags = core.Tag.add(
+                        self,
+                        key=ec2_tag_key,
+                        value=ec2_tag_value,
+                        include_resource_types=["AWS::EC2::Instance"],
+                    )
