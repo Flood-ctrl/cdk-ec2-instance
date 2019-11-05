@@ -46,7 +46,7 @@ boto3==1.9.252
 botocore==1.12.252
 cattrs==0.9.0
 docutils==0.15.2
--e git+git@github.com:Flood-ctrl/cdk-ec2-instance.git@8690c566577e0afbe001505ae400eb2ee598197e#egg=ec2_instance
+-e git+git@github.com:Flood-ctrl/cdk-ec2-instance.git@df89b70a9898ba1c31b41ded493b4596d72cee9e#egg=ec2_instance
 importlib-metadata==0.23
 isort==4.3.21
 jmespath==0.9.4
