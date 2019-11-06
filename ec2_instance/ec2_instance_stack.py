@@ -2,6 +2,7 @@ from aws_cdk import (
     core,
     aws_ec2 as ec2,
     aws_ssm as ssm,
+
 )
 
 from ec2_cfn_instance.ec2_cfn_instance_construct import EC2CfnInstanceConstruct
@@ -22,11 +23,11 @@ class EC2Instance(core.Stack):
                                           ec2_cfn_instance_id="Jenkins", 
                                           image_id='ami-0b898040803850657',
                                           user_data_file='user_data.sh',
-                                          instances_count=3,
+                                          instances_count=1,
                                           ssm_quick_setup_role=True,
                                           subnet_id=ssm_subnet_id.string_value,
                                           ec2_tags={
-                                              'Name': 'NGINX',
+                                              'Name': self.stack_name,
                                               'CDK-TYPE': 'EC2-Instance',
                                               'Provisioned': 'False',
                                               'Test-purpose': 'True',

@@ -2,7 +2,7 @@ import os
 import base64
 from aws_cdk import (
     core,
-    aws_ec2 as ec2,
+    aws_ec2 as _ec2,
 )
 
 class EC2CfnInstanceConstruct(core.Construct):
@@ -52,7 +52,6 @@ class EC2CfnInstanceConstruct(core.Construct):
                 instance_name = f'{instance_name}'
             else:
                 instance_name = f'{instance_name}-{i}'
-            print(instance_name)
             return instance_name
 
         if ssm_quick_setup_role:
@@ -67,7 +66,7 @@ class EC2CfnInstanceConstruct(core.Construct):
             user_data = base64.b64encode(userdata.encode("ascii")).decode('ascii')
 
         for i in range(0,instances_count):
-            ec2_cfn_instance = ec2.CfnInstance(
+            ec2_cfn_instance = _ec2.CfnInstance(
                 self, ec2_cfn_instance_id + f'{i}',
                 key_name=key_name,
                 user_data=user_data,
