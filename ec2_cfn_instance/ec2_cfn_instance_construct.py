@@ -3,6 +3,7 @@ import base64
 from aws_cdk import (
     core,
     aws_ec2 as _ec2,
+    aws_iam as _iam,
 )
 
 class EC2CfnInstanceConstruct(core.Construct):
@@ -17,7 +18,7 @@ class EC2CfnInstanceConstruct(core.Construct):
                  user_data_file: str=None,
                  security_group_ids :list=None,
                  iam_instance_profile :str=None,
-                 instances_count: int=1,
+                 instances_count: int=0,
                  ssm_quick_setup_role: bool=False,
                  zero_in_postfix_ec2_name: bool=False,
                  ec2_tags: dict=None,
@@ -38,6 +39,41 @@ class EC2CfnInstanceConstruct(core.Construct):
         """
         super().__init__(scope, id, **kwargs)
 
+        role = _iam.Role(
+            self, 'rolessm11',
+            assumed_by=_iam.ServicePrincipal('ec2.amazonaws.com'),
+            role_name='TESTSSM',
+        )
+
+        # role = _iam.CfnRole(
+        #     self, 'TESTROLE',
+        #     assume_role_policy_document={
+        #                                     "Version": "2012-10-17",
+        #                                     "Statement": [
+        #                                       {
+        #                                         "Sid": "",
+        #                                         "Effect": "Allow",
+        #                                         "Principal": {
+        #                                           "Service": "ec2.amazonaws.com"
+        #                                         },
+        #                                         "Action": "sts:AssumeRole"
+        #                                       }
+        #                                     ]
+        #                                   },
+        #     role_name='rrrrr',
+        #     managed_policy_arns=['arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore',
+        #                          'arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess',
+        #                         ]
+        # )
+
+        instprof = _iam.CfnInstanceProfile(
+            self, 'InstProf',
+            roles=[role.role_name],
+            instance_profile_name='SSMANDS3',
+        )
+
+
+
         if ec2_tags is not None:
             try:
                 instance_name = ec2_tags['Name']
@@ -56,7 +92,10 @@ class EC2CfnInstanceConstruct(core.Construct):
 
         if ssm_quick_setup_role:
             assert iam_instance_profile is None, caution_message('iam_instance_profile', 'ssm_quick_setup_role')
-            iam_instance_profile = 'AmazonSSMRoleForInstancesQuickSetup'
+  
+            iam_instance_profile = role.role_name
+
+
 
         if user_data_file is not None:
             assert user_data is None, caution_message('user_data', 'user_data_file')
@@ -65,31 +104,31 @@ class EC2CfnInstanceConstruct(core.Construct):
                 userdata = file.read()
             user_data = base64.b64encode(userdata.encode("ascii")).decode('ascii')
 
-        for i in range(0,instances_count):
-            ec2_cfn_instance = _ec2.CfnInstance(
-                self, ec2_cfn_instance_id + f'{i}',
-                key_name=key_name,
-                user_data=user_data,
-                image_id=image_id,
-                instance_type=instance_type,
-                security_group_ids=security_group_ids,
-                iam_instance_profile=iam_instance_profile,
-                subnet_id=subnet_id,
-                tags=[
-                    core.CfnTag(
-                        key = 'Name',
-                        value = ec2_instace_name_value(i)
-                    ),
-                ],
-            )
+        # for i in range(0,instances_count):
+        #     ec2_cfn_instance = _ec2.CfnInstance(
+        #         self, ec2_cfn_instance_id + f'{i}',
+        #         key_name=key_name,
+        #         user_data=user_data,
+        #         image_id=image_id,
+        #         instance_type=instance_type,
+        #         security_group_ids=security_group_ids,
+        #         iam_instance_profile=iam_instance_profile,
+        #         subnet_id=subnet_id,
+        #         tags=[
+        #             core.CfnTag(
+        #                 key = 'Name',
+        #                 value = ec2_instace_name_value(i)
+        #             ),
+        #         ],
+        #     )
 
-            if ec2_tags is not None:
-                for ec2_tag_key,ec2_tag_value in ec2_tags.items():
-                    if ec2_tag_key == 'Name':
-                        continue
-                    ec2_instance_tags = core.Tag.add(
-                        self,
-                        key=ec2_tag_key,
-                        value=ec2_tag_value,
-                        include_resource_types=["AWS::EC2::Instance"],
-                    )
+        #     if ec2_tags is not None:
+        #         for ec2_tag_key,ec2_tag_value in ec2_tags.items():
+        #             if ec2_tag_key == 'Name':
+        #                 continue
+        #             ec2_instance_tags = core.Tag.add(
+        #                 self,
+        #                 key=ec2_tag_key,
+        #                 value=ec2_tag_value,
+        #                 include_resource_types=["AWS::EC2::Instance"],
+        #             )
