@@ -13,8 +13,8 @@ class LambdaSsmConstruct(core.Construct):
 
     def __init__(self, scope: core.Construct, id: str,
                  ec2_tag_key: str, ec2_tag_value: str,
-                 playbook_url: str, playbook_file_name: str,
-                 log_level: str,
+                 playbook_url: str, playbook_file_name: str=None,
+                 log_level: str='INFO',
                  **kwargs) -> None:
         """Creates a new construct node.
 
@@ -39,7 +39,8 @@ class LambdaSsmConstruct(core.Construct):
 
         s3 = _s3.Bucket(
         self, "S3SsmRunCommandBucket",
-        bucket_name=get_s3_bucket_name(self)
+        bucket_name=get_s3_bucket_name(self),
+        removal_policy=core.RemovalPolicy.DESTROY,
         )
 
         if playbook_url is None:

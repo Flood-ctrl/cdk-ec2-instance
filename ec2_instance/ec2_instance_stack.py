@@ -4,7 +4,7 @@ from aws_cdk import (
     aws_ssm as ssm,
 
 )
-
+from lambda_ssm.lambda_ssm_construct import LambdaSsmConstruct
 from ec2_cfn_instance.ec2_cfn_instance_construct import EC2CfnInstanceConstruct
 
 
@@ -18,6 +18,12 @@ class EC2Instance(core.Stack):
             self, "SsmSubnetId1",
             string_parameter_name='semi_default_subnet_id'
         )
+
+        lambda_smm = LambdaSsmConstruct(self, "JenkinsPlaybook",
+                                        playbook_url="s3://s3-jenkinsplaybook/jenkins.yml",
+                                        ec2_tag_key='HostClass',
+                                        ec2_tag_value=host_class,
+                                       )
 
         jenkins = EC2CfnInstanceConstruct(self, "JenkinsInstance", 
                                           ec2_cfn_instance_id="Jenkins", 
