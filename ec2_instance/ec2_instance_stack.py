@@ -24,7 +24,7 @@ class EC2Instance(core.Stack):
                                           image_id='ami-0b898040803850657',
                                           user_data_file='user_data.sh',
                                           instances_count=1,
-                                          ssm_quick_setup_role=True,
+                                          ssm_ec2_managed_iam_role=True,
                                           subnet_id=ssm_subnet_id.string_value,
                                           ec2_tags={
                                               'Name': self.stack_name,
