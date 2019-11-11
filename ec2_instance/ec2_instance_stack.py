@@ -6,6 +6,7 @@ from aws_cdk import (
 )
 from lambda_ssm.lambda_ssm_construct import LambdaSsmConstruct
 from ec2_cfn_instance.ec2_cfn_instance_construct import EC2CfnInstanceConstruct
+from ansible_role_ssm_document.ansible_role_ssm_document_construct import AnsibleRoleSsmDocumentConstruct
 
 
 class EC2Instance(core.Stack):
@@ -19,23 +20,27 @@ class EC2Instance(core.Stack):
             string_parameter_name='semi_default_subnet_id'
         )
 
-        lambda_smm = LambdaSsmConstruct(self, "JenkinsPlaybook",
-                                        playbook_url="s3://s3-jenkinsplaybook/jenkins.yml",
-                                        ec2_tag_key='HostClass',
-                                        ec2_tag_value=host_class,
-                                       )
+        ansible_role_doc = AnsibleRoleSsmDocumentConstruct(
+            self, "AnsibleWithRoleDocument",
+        )
 
-        jenkins = EC2CfnInstanceConstruct(self, "JenkinsInstance", 
-                                          ec2_cfn_instance_id="Jenkins", 
-                                          image_id='ami-0b898040803850657',
-                                          user_data_file='user_data.sh',
-                                          instances_count=1,
-                                          ssm_ec2_managed_iam_role=True,
-                                          subnet_id=ssm_subnet_id.string_value,
-                                          ec2_tags={
-                                              'Name': self.stack_name,
-                                              'CDK-TYPE': 'EC2-Instance',
-                                              'Provisioned': 'False',
-                                              'Test-purpose': 'True',
-                                          }
-                                          )
+        # lambda_smm = LambdaSsmConstruct(self, "JenkinsPlaybook",
+        #                                 playbook_url="s3://s3-jenkinsplaybook/jenkins.yml",
+        #                                 ec2_tag_key='HostClass',
+        #                                 ec2_tag_value=host_class,
+        #                                )
+
+        # jenkins = EC2CfnInstanceConstruct(self, "JenkinsInstance", 
+        #                                   ec2_cfn_instance_id="Jenkins", 
+        #                                   image_id='ami-0b898040803850657',
+        #                                   user_data_file='user_data.sh',
+        #                                   instances_count=1,
+        #                                   ssm_ec2_managed_iam_role=True,
+        #                                   subnet_id=ssm_subnet_id.string_value,
+        #                                   ec2_tags={
+        #                                       'Name': self.stack_name,
+        #                                       'CDK-TYPE': 'EC2-Instance',
+        #                                       'Provisioned': 'False',
+        #                                       'Test-purpose': 'True',
+        #                                   }
+        #                                   )
