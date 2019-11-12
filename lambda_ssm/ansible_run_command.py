@@ -34,7 +34,7 @@ def ssm_run_command_run_ansible_playbook(context, target_key, target_value):
                 'Values': [target_value]
                 }
             ],
-        DocumentName=[os.environ['SSM_DOCUMENT_NAME']],
+        DocumentName=os.environ['SSM_DOCUMENT_NAME'],
         Parameters={
             'playbookurl': [os.environ['PLAYBOOK_URL']],
             }, 

@@ -93,6 +93,7 @@ class EC2Instance(core.Stack):
                                               'CDK-TYPE': 'EC2-Instance',
                                               'Provisioned': 'False',
                                               'Test-purpose': 'True',
+                                              'HostClass': 'CDK',
                                           },
                                           security_group_ids=[jenkins_sg_id],
                                           )
