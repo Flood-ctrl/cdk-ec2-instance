@@ -1,3 +1,4 @@
+import os
 import json
 from aws_cdk import (
     core,
@@ -19,6 +20,8 @@ class AnsibleRoleSsmDocumentConstruct(core.Construct):
         :param playbook_file_name: Ansible playbook file name, if playbook_url is not None playbook_file_name is skipping.
         """
         super().__init__(scope, id, **kwargs)
+
+        #with open('ansible_role_ssm_document/')
 
         ssm_document = _ssm.CfnDocument(
             self, "SSMDocument",

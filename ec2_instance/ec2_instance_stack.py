@@ -20,9 +20,56 @@ class EC2Instance(core.Stack):
             string_parameter_name='semi_default_subnet_id'
         )
 
-        ansible_role_doc = AnsibleRoleSsmDocumentConstruct(
-            self, "AnsibleWithRoleDocument",
+        # vpc = ec2.Vpc.from_lookup(
+        #     self, "ImportedVpc",
+        #     vpc_name='shared_vpc'
+        # )
+
+        jenkins_tcp_ports = [8080,80]
+        jenkins_source = '10.10.1.4/32'
+
+        def create_jenkins_sg(sg_ingress_ports, sg_ingress_source):
+
+            vpc = ec2.Vpc.from_vpc_attributes(
+                self, "ImportedSharedVpc",
+                availability_zones=['use1-az3', 'use1-az5'],
+                vpc_id='vpc-0b38b12319bf47d79',
+            )
+    
+            jenkins_sg = ec2.SecurityGroup(
+                self, "JenkinsSG",
+                vpc=vpc,
+                security_group_name="jenkins_sg",
+                description="Security group for accessing the Jenkins from outside",
+            )
+    
+    
+            for port in sg_ingress_ports:
+                jenkins_sg.add_ingress_rule(
+                    peer=ec2.Peer.ipv4(sg_ingress_source),
+                    connection=ec2.Port.tcp(port),
+                )
+
+            return jenkins_sg.security_group_id 
+
+        #print(jenkins_sg_id)
+        jenkins_sg_id = create_jenkins_sg(jenkins_tcp_ports, jenkins_source)
+
+        contact_tag = core.Tag.add(
+            self,
+            key='Contact',
+            value='DeVops'
         )
+
+        apllication_tag = core.Tag.add(
+            self,
+            key='Applicaton',
+            value='Jenkins'
+        )
+
+        # ansible_role_doc = AnsibleRoleSsmDocumentConstruct(
+        #     self, "AnsibleWithRoleDocument",
+        # )
 
         # lambda_smm = LambdaSsmConstruct(self, "JenkinsPlaybook",
         #                                 playbook_url="s3://s3-jenkinsplaybook/jenkins.yml",
@@ -30,17 +77,18 @@ class EC2Instance(core.Stack):
         #                                 ec2_tag_value=host_class,
         #                                )
 
-        # jenkins = EC2CfnInstanceConstruct(self, "JenkinsInstance", 
-        #                                   ec2_cfn_instance_id="Jenkins", 
-        #                                   image_id='ami-0b898040803850657',
-        #                                   user_data_file='user_data.sh',
-        #                                   instances_count=1,
-        #                                   ssm_ec2_managed_iam_role=True,
-        #                                   subnet_id=ssm_subnet_id.string_value,
-        #                                   ec2_tags={
-        #                                       'Name': self.stack_name,
-        #                                       'CDK-TYPE': 'EC2-Instance',
-        #                                       'Provisioned': 'False',
-        #                                       'Test-purpose': 'True',
-        #                                   }
-        #                                   )
+        jenkins = EC2CfnInstanceConstruct(self, "JenkinsInstance", 
+                                          ec2_cfn_instance_id="Jenkins", 
+                                          image_id='ami-0b898040803850657',
+                                          user_data_file='user_data.sh',
+                                          instances_count=1,
+                                          ssm_ec2_managed_iam_role=True,
+                                          subnet_id="subnet-0830e74b0217be763",
+                                          ec2_tags={
+                                              'Name': self.stack_name,
+                                              'Contact': 'DevOps',
+                                              'CDK-TYPE': 'EC2-Instance',
+                                              'Provisioned': 'False',
+                                              'Test-purpose': 'True',
+                                          }
+                                          )
