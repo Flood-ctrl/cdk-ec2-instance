@@ -13,7 +13,9 @@ class LambdaSsmConstruct(core.Construct):
 
     def __init__(self, scope: core.Construct, id: str,
                  ec2_tag_key: str, ec2_tag_value: str,
-                 playbook_url: str, playbook_file_name: str=None,
+                 ssm_document_name: str,
+                 playbook_url: str,
+                 playbook_file_name: str=None,
                  log_level: str='INFO',
                  **kwargs) -> None:
         """Creates a new construct node.
@@ -56,6 +58,7 @@ class LambdaSsmConstruct(core.Construct):
                 "EC2_TAG_KEY": f'{ec2_tag_key}',
                 "EC2_TAG_VALUE": f'{ec2_tag_value}',
                 "PLAYBOOK_URL": f'{playbook_url}',
+                "SSM_DOCUMENT_NAME": f'{ssm_document_name}'
             }
         )
 

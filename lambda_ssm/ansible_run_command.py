@@ -24,7 +24,7 @@ def handler(event, context):
 
 def ssm_run_command_run_ansible_playbook(context, target_key, target_value):
     ssm_client = boto3.client('ssm')
-    logger.info('AWS-RunAnsiblePlaybook')
+    logger.info([os.environ['SSM_DOCUMENT_NAME']])
     logger.debug(target_key)
     logger.debug(target_value)
     ssm_command_response = ssm_client.send_command(
@@ -34,7 +34,7 @@ def ssm_run_command_run_ansible_playbook(context, target_key, target_value):
                 'Values': [target_value]
                 }
             ],
-        DocumentName='AWS-RunAnsiblePlaybook',
+        DocumentName=[os.environ['SSM_DOCUMENT_NAME']],
         Parameters={
             'playbookurl': [os.environ['PLAYBOOK_URL']],
             }, 
