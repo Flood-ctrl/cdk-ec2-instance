@@ -8,7 +8,7 @@ from aws_cdk import (
 )
 from lambda_ssm.lambda_ssm_construct import LambdaSsmConstruct
 from ec2_cfn_instance.ec2_cfn_instance_construct import EC2CfnInstanceConstruct
-from ansible_role_ssm_document.ansible_role_ssm_document_construct import AnsibleRoleSsmDocumentConstruct
+from custom_ssm_document.custom_ssm_document_construct import CustomSsmDocumentConstruct
 
 
 class EC2Instance(core.Stack):
@@ -68,9 +68,9 @@ class EC2Instance(core.Stack):
             value='Jenkins'
         )
 
-        ssm_document = AnsibleRoleSsmDocumentConstruct(
+        ssm_document = CustomSsmDocumentConstruct(
             self, "AnsibleSSMDocument",
-            ssm_document_parameter_name='ansible_role_ssm_document_name'
+            json_ssm_document_file='custom_ssm_document/run_ansible_playbook_role.json',
         )
 
         lambda_smm = LambdaSsmConstruct(self, "JenkinsPlaybook",
