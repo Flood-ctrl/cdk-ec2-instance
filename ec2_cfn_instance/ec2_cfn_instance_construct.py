@@ -11,10 +11,10 @@ class EC2CfnInstanceConstruct(core.Construct):
     def __init__(self, scope: core.Construct, id: str,
                  ec2_cfn_instance_id: str,
                  image_id: str,
-                 key_name: str=None,
                  subnet_id: str=None,
                  user_data: str=None,
                  aws_region: str=None,
+                 ssh_key_name: str=None,
                  user_data_file: str=None,
                  security_group_ids :list=None,
                  iam_instance_profile :str=None,
@@ -100,7 +100,7 @@ class EC2CfnInstanceConstruct(core.Construct):
         for i in range(0,instances_count):
             ec2_cfn_instance = _ec2.CfnInstance(
                 self, ec2_cfn_instance_id + f'{i}',
-                key_name=key_name,
+                key_name=ssh_key_name,
                 user_data=user_data,
                 image_id=image_id,
                 instance_type=instance_type,

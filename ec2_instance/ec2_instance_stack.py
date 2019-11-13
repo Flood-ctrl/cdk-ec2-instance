@@ -27,7 +27,7 @@ class EC2Instance(core.Stack):
         #     vpc_name='shared_vpc'
         # )
 
-        jenkins_tcp_ports = [8080,443]
+        jenkins_tcp_ports = [443,80]
         jenkins_source = '0.0.0.0/0'
 
         def create_jenkins_sg(sg_ingress_ports, sg_ingress_source):
