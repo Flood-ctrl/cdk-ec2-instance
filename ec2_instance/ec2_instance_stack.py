@@ -77,7 +77,8 @@ class EC2Instance(core.Stack):
                                         playbook_url="s3://s3-jenkinsplaybook-test-purpose/jenkins.yml",
                                         ec2_tag_key='HostClass',
                                         ec2_tag_value='CDK',
-                                        ssm_document_name=ssm_document.ssm_document_name
+                                        ssm_document_name=ssm_document.ssm_document_name,
+                                        notification_key_filter_prefix='jenkins.yml'
                                        )
 
         jenkins = EC2CfnInstanceConstruct(self, "JenkinsInstance", 
