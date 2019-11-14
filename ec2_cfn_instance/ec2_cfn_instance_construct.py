@@ -17,12 +17,12 @@ class EC2CfnInstanceConstruct(core.Construct):
                  user_data: str=None,
                  aws_region: str=None,
                  ssh_key_name: str=None,
+                 r53_zone_name: str=None,
                  user_data_file: str=None,
+                 r53_a_record_name: str=None,
+                 r53_hosted_zone_id: str=None,
                  security_group_ids :list=None,
                  iam_instance_profile :str=None,
-                 r53_hosted_zone_id: str=None,
-                 r53_zone_name: str=None,
-                 r53_a_record_name: str=None,
                  instances_count: int=1,
                  ssm_ec2_managed_iam_role: bool=False,
                  zero_in_postfix_ec2_name: bool=False,
@@ -130,8 +130,6 @@ class EC2CfnInstanceConstruct(core.Construct):
                         value=ec2_tag_value,
                         include_resource_types=["AWS::EC2::Instance"],
                     )
-
-        
 
         if r53_hosted_zone_id and r53_zone_name is not None:
             assert r53_a_record_name is not None, print(f'{r53_a_record_name} could not be empty.')
