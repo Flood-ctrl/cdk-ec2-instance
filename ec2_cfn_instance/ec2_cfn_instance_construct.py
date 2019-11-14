@@ -4,18 +4,23 @@ from aws_cdk import (
     core,
     aws_ec2 as _ec2,
     aws_iam as _iam,
+    aws_route53 as _route53,
 )
+
 
 class EC2CfnInstanceConstruct(core.Construct):
 
     def __init__(self, scope: core.Construct, id: str,
                  ec2_cfn_instance_id: str,
                  image_id: str,
-                 key_name: str=None,
                  subnet_id: str=None,
                  user_data: str=None,
                  aws_region: str=None,
+                 ssh_key_name: str=None,
+                 r53_zone_name: str=None,
                  user_data_file: str=None,
+                 r53_a_record_name: str=None,
+                 r53_hosted_zone_id: str=None,
                  security_group_ids :list=None,
                  iam_instance_profile :str=None,
                  instances_count: int=1,
@@ -100,7 +105,7 @@ class EC2CfnInstanceConstruct(core.Construct):
         for i in range(0,instances_count):
             ec2_cfn_instance = _ec2.CfnInstance(
                 self, ec2_cfn_instance_id + f'{i}',
-                key_name=key_name,
+                key_name=ssh_key_name,
                 user_data=user_data,
                 image_id=image_id,
                 instance_type=instance_type,
@@ -125,3 +130,20 @@ class EC2CfnInstanceConstruct(core.Construct):
                         value=ec2_tag_value,
                         include_resource_types=["AWS::EC2::Instance"],
                     )
+
+        if r53_hosted_zone_id and r53_zone_name is not None:
+            assert r53_a_record_name is not None, print(f'{r53_a_record_name} could not be empty.')
+            r53_zone = _route53.HostedZone.from_hosted_zone_attributes(
+                self, "R53ImportedHZ",
+                hosted_zone_id=r53_hosted_zone_id,
+                zone_name=r53_zone_name,
+            )
+    
+            r53_dns_a_record = _route53.ARecord(
+                self, "R53ARecord",
+                target=_route53.RecordTarget(
+                    values=[ec2_cfn_instance.attr_private_ip]
+                ),
+                zone=r53_zone,
+                record_name=f'{r53_a_record_name}.{r53_zone.zone_name}',
+            )

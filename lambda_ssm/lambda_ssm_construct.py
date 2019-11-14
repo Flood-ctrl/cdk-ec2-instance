@@ -13,7 +13,11 @@ class LambdaSsmConstruct(core.Construct):
 
     def __init__(self, scope: core.Construct, id: str,
                  ec2_tag_key: str, ec2_tag_value: str,
-                 playbook_url: str, playbook_file_name: str=None,
+                 ssm_document_name: str,
+                 playbook_url: str,
+                 playbook_file_name: str=None,
+                 notification_key_filter_prefix: str=None,
+                 notification_key_filter_suffix: str=None,
                  log_level: str='INFO',
                  **kwargs) -> None:
         """Creates a new construct node.
@@ -56,6 +60,7 @@ class LambdaSsmConstruct(core.Construct):
                 "EC2_TAG_KEY": f'{ec2_tag_key}',
                 "EC2_TAG_VALUE": f'{ec2_tag_value}',
                 "PLAYBOOK_URL": f'{playbook_url}',
+                "SSM_DOCUMENT_NAME": f'{ssm_document_name}'
             }
         )
 
@@ -100,7 +105,29 @@ class LambdaSsmConstruct(core.Construct):
 
         notification = _s3_notifications.LambdaDestination(lambda_ssm)
 
-        s3.add_event_notification(_s3.EventType.OBJECT_CREATED, notification)
+        if notification_key_filter_prefix or notification_key_filter_suffix is not None:
+            if notification_key_filter_prefix is None:
+                filers = _s3.NotificationKeyFilter(
+                    suffix=notification_key_filter_suffix,
+                )
+            elif notification_key_filter_suffix is None:
+                filers = _s3.NotificationKeyFilter(
+                    prefix=notification_key_filter_prefix,
+                )
+            else:
+                filers = _s3.NotificationKeyFilter(
+                        prefix=notification_key_filter_prefix,
+                        suffix=notification_key_filter_suffix,
+                )
+
+            s3.add_event_notification(_s3.EventType.OBJECT_CREATED, 
+                                  notification,
+                                  filers,
+            )
+
+        s3.add_event_notification(_s3.EventType.OBJECT_CREATED, 
+                                  notification,
+        )
 
         cloudwatch_event = _events.Rule(
             self, "CloudWatchEvent",
