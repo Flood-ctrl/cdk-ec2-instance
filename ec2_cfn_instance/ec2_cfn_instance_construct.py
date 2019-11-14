@@ -4,7 +4,9 @@ from aws_cdk import (
     core,
     aws_ec2 as _ec2,
     aws_iam as _iam,
+    aws_route53 as _route53,
 )
+
 
 class EC2CfnInstanceConstruct(core.Construct):
 
@@ -18,6 +20,9 @@ class EC2CfnInstanceConstruct(core.Construct):
                  user_data_file: str=None,
                  security_group_ids :list=None,
                  iam_instance_profile :str=None,
+                 r53_hosted_zone_id: str=None,
+                 r53_zone_name: str=None,
+                 r53_a_record_name: str=None,
                  instances_count: int=1,
                  ssm_ec2_managed_iam_role: bool=False,
                  zero_in_postfix_ec2_name: bool=False,
@@ -125,3 +130,22 @@ class EC2CfnInstanceConstruct(core.Construct):
                         value=ec2_tag_value,
                         include_resource_types=["AWS::EC2::Instance"],
                     )
+
+        
+
+        if r53_hosted_zone_id and r53_zone_name is not None:
+            assert r53_a_record_name is not None, print(f'{r53_a_record_name} could not be empty.')
+            r53_zone = _route53.HostedZone.from_hosted_zone_attributes(
+                self, "R53ImportedHZ",
+                hosted_zone_id=r53_hosted_zone_id,
+                zone_name=r53_zone_name,
+            )
+    
+            r53_dns_a_record = _route53.ARecord(
+                self, "R53ARecord",
+                target=_route53.RecordTarget(
+                    values=[ec2_cfn_instance.attr_private_ip]
+                ),
+                zone=r53_zone,
+                record_name=f'{r53_a_record_name}.{r53_zone.zone_name}',
+            )

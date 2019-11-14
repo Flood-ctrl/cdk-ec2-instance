@@ -4,8 +4,8 @@ from aws_cdk import (
     core,
     aws_ec2 as _ec2,
     aws_ssm as _ssm,
-
 )
+
 from lambda_ssm.lambda_ssm_construct import LambdaSsmConstruct
 from ec2_cfn_instance.ec2_cfn_instance_construct import EC2CfnInstanceConstruct
 from custom_ssm_document.custom_ssm_document_construct import CustomSsmDocumentConstruct
