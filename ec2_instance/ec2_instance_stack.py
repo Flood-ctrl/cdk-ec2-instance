@@ -68,18 +68,18 @@ class EC2Instance(core.Stack):
             value='Jenkins'
         )
 
-        ssm_document = CustomSsmDocumentConstruct(
-            self, "AnsibleSSMDocument",
-            json_ssm_document_file='custom_ssm_document/run_ansible_playbook_role.json',
-        )
+        # ssm_document = CustomSsmDocumentConstruct(
+        #     self, "AnsibleSSMDocument",
+        #     json_ssm_document_file='custom_ssm_document/run_ansible_playbook_role.json',
+        # )
 
-        lambda_smm = LambdaSsmConstruct(self, "JenkinsPlaybook",
-                                        playbook_url="s3://s3-jenkinsplaybook-test-purpose/jenkins.yml",
-                                        ec2_tag_key='HostClass',
-                                        ec2_tag_value='CDK',
-                                        ssm_document_name=ssm_document.ssm_document_name,
-                                        notification_key_filter_prefix='jenkins.yml'
-                                       )
+        # lambda_smm = LambdaSsmConstruct(self, "JenkinsPlaybook",
+        #                                 playbook_url="s3://s3-jenkinsplaybook-test-purpose/jenkins.yml",
+        #                                 ec2_tag_key='HostClass',
+        #                                 ec2_tag_value='CDK',
+        #                                 ssm_document_name=ssm_document.ssm_document_name,
+        #                                 notification_key_filter_prefix='jenkins.yml'
+        #                                )
 
         jenkins = EC2CfnInstanceConstruct(self, "JenkinsInstance", 
                                           ec2_cfn_instance_id="Jenkins", 
