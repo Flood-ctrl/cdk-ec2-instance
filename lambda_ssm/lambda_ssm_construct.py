@@ -42,9 +42,9 @@ class LambdaSsmConstruct(core.Construct):
             return s3_bucket_name
 
         s3 = _s3.Bucket(
-        self, "S3SsmRunCommandBucket",
-        bucket_name=get_s3_bucket_name(self),
-        removal_policy=core.RemovalPolicy.DESTROY,
+            self, "S3SsmRunCommandBucket",
+            bucket_name=get_s3_bucket_name(self),
+            removal_policy=core.RemovalPolicy.RETAIN,
         )
 
         if playbook_url is None:
@@ -100,7 +100,6 @@ class LambdaSsmConstruct(core.Construct):
                     )
                 )
 
-        
         s3.grant_read(lambda_ssm)
 
         notification = _s3_notifications.LambdaDestination(lambda_ssm)
@@ -121,13 +120,13 @@ class LambdaSsmConstruct(core.Construct):
                 )
 
             s3.add_event_notification(_s3.EventType.OBJECT_CREATED, 
-                                  notification,
-                                  filers,
+                                      notification,
+                                      filers,
             )
-
-        s3.add_event_notification(_s3.EventType.OBJECT_CREATED, 
-                                  notification,
-        )
+        else:
+            s3.add_event_notification(_s3.EventType.OBJECT_CREATED, 
+                                      notification,
+            )
 
         cloudwatch_event = _events.Rule(
             self, "CloudWatchEvent",

@@ -21,12 +21,14 @@ def handler(event, context):
         'body': 'Done {}\n'.format(event)
     }
 
+playbook_path = 'jenkins/jenkins.yml'
 
 def ssm_run_command_run_ansible_playbook(context, target_key, target_value):
     ssm_client = boto3.client('ssm')
-    logger.info([os.environ['SSM_DOCUMENT_NAME']])
-    logger.debug(target_key)
-    logger.debug(target_value)
+    logger.info('SMM Document name: ' + os.environ['SSM_DOCUMENT_NAME'])
+    logger.info('Ansible Playbook: ' + os.environ['PLAYBOOK_URL'] + playbook_path)
+    logger.debug('target_key: ' + target_key)
+    logger.debug('target_value: ' + target_value)
     ssm_command_response = ssm_client.send_command(
         Targets=[
             {
@@ -36,8 +38,8 @@ def ssm_run_command_run_ansible_playbook(context, target_key, target_value):
             ],
         DocumentName=os.environ['SSM_DOCUMENT_NAME'],
         Parameters={
-            'playbookurl': [os.environ['PLAYBOOK_URL']],
-            }, 
+            'playbookurl': [os.environ['PLAYBOOK_URL'] + playbook_path],
+            },
         )
     logger.debug(ssm_command_response)
     command_id = context.aws_request_id

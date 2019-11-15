@@ -48,7 +48,7 @@ class EC2CfnInstanceConstruct(core.Construct):
         def create_ec2_ssm_iam_role():
 
             lambda_ssm_iam_role = _iam.Role(
-                self, "LambdaSSMIamRole",
+                self, "SSMLambdaIamRole",
                 assumed_by=_iam.ServicePrincipal("ec2.amazonaws.com"),
                 inline_policies={
                     'EC2TagsAccess': _iam.PolicyDocument(
@@ -72,31 +72,9 @@ class EC2CfnInstanceConstruct(core.Construct):
                         'AmazonS3ReadOnlyAccess'
                     ),
                 ],
-                role_name="LambdaSSMIamRole",
+                role_name="SSMLambdaIamRole",
             )
 
-            # lambda_ssm_iam_role = _iam.CfnRole(
-            #     self, 'LambdaSSMIamRole',
-            #     assume_role_policy_document={
-            #         "Version": "2012-10-17",
-            #         "Statement": [
-            #           {
-            #             "Sid": "",
-            #             "Effect": "Allow",
-            #             "Principal": {
-            #               "Service": "ec2.amazonaws.com"
-            #             },
-            #             "Action": "sts:AssumeRole"
-            #           }
-            #         ]
-            #     },
-            #     role_name='LambdaSSMIamRole',
-            #     managed_policy_arns=['arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore',
-            #                          'arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess',
-            #                         ],
-            #     description='EC2 role for SSM managing'
-            # )
-    
             lambda_ssm_iam_role_instance_profile = _iam.CfnInstanceProfile(
                 self, 'LambdaSSMInstanceProfile',
                 roles=[lambda_ssm_iam_role.role_name],
