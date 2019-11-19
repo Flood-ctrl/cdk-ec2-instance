@@ -13,22 +13,22 @@ class EC2CfnInstanceConstruct(core.Construct):
     def __init__(self, scope: core.Construct, id: str,
                  ec2_cfn_instance_id: str,
                  image_id: str,
-                 subnet_id: str=None,
-                 user_data: str=None,
-                 aws_region: str=None,
-                 ssh_key_name: str=None,
-                 r53_zone_name: str=None,
-                 user_data_file: str=None,
-                 r53_a_record_name: str=None,
-                 r53_hosted_zone_id: str=None,
-                 security_group_ids :list=None,
-                 iam_instance_profile :str=None,
-                 instances_count: int=1,
-                 ssm_ec2_managed_iam_role: bool=False,
-                 zero_in_postfix_ec2_name: bool=False,
-                 ec2_tags: dict=None,
-                 instance_type: str='t2.micro',
-                 instance_name: str='cdk-ec2-instance',
+                 subnet_id: str = None,
+                 user_data: str = None,
+                 aws_region: str = None,
+                 ssh_key_name: str = None,
+                 r53_zone_name: str = None,
+                 user_data_file: str = None,
+                 r53_a_record_name: str = None,
+                 r53_hosted_zone_id: str = None,
+                 security_group_ids: list = None,
+                 iam_instance_profile: str = None,
+                 instances_count: int = 1,
+                 ssm_ec2_managed_iam_role: bool = False,
+                 zero_in_postfix_ec2_name: bool = False,
+                 ec2_tags: dict = None,
+                 instance_type: str = 't2.micro',
+                 instance_name: str = 'cdk-ec2-instance',
                  **kwargs) -> None:
         """Creates EC2 instance by using aws_ec2.CfnInstance.
 
@@ -44,7 +44,7 @@ class EC2CfnInstanceConstruct(core.Construct):
         """
         super().__init__(scope, id, **kwargs)
 
-        #Creating IAM role and EC2 instance profile for SSM managment ability
+        # Creating IAM role and EC2 instance profile for SSM managment ability
         def create_ec2_ssm_iam_role():
 
             lambda_ssm_iam_role = _iam.Role(
@@ -55,9 +55,9 @@ class EC2CfnInstanceConstruct(core.Construct):
                         statements=[_iam.PolicyStatement(
                             effect=_iam.Effect.ALLOW,
                             actions=[
-                            "ec2:DescribeTags",
-                            "ec2:CreateTags",
-                            "ec2:DeleteTags",
+                                "ec2:DescribeTags",
+                                "ec2:CreateTags",
+                                "ec2:DeleteTags",
                             ],
                             resources=["*"],
                         ),
@@ -91,7 +91,7 @@ class EC2CfnInstanceConstruct(core.Construct):
         def caution_message(variable_1, variable_2):
             print(f'{variable_1} and {variable_2} are both defined!')
 
-        def ec2_instace_name_value(i,instance_name=instance_name, zero_in_postfix_ec2_name=zero_in_postfix_ec2_name):
+        def ec2_instace_name_value(i, instance_name=instance_name, zero_in_postfix_ec2_name=zero_in_postfix_ec2_name):
             if i == 0 and zero_in_postfix_ec2_name is False:
                 instance_name = f'{instance_name}'
             else:
@@ -99,17 +99,20 @@ class EC2CfnInstanceConstruct(core.Construct):
             return instance_name
 
         if ssm_ec2_managed_iam_role:
-            assert iam_instance_profile is None, caution_message('iam_instance_profile', 'ssm_ec2_managed_iam_role')
+            assert iam_instance_profile is None, caution_message(
+                'iam_instance_profile', 'ssm_ec2_managed_iam_role')
             iam_instance_profile = create_ec2_ssm_iam_role()
 
         if user_data_file is not None:
-            assert user_data is None, caution_message('user_data', 'user_data_file')
+            assert user_data is None, caution_message(
+                'user_data', 'user_data_file')
             cwd = os.getcwd()
             with open(f'{cwd}/{user_data_file}', 'r') as file:
                 userdata = file.read()
-            user_data = base64.b64encode(userdata.encode("ascii")).decode('ascii')
+            user_data = base64.b64encode(
+                userdata.encode("ascii")).decode('ascii')
 
-        for i in range(0,instances_count):
+        for i in range(0, instances_count):
             ec2_cfn_instance = _ec2.CfnInstance(
                 self, ec2_cfn_instance_id + f'{i}',
                 key_name=ssh_key_name,
@@ -121,14 +124,14 @@ class EC2CfnInstanceConstruct(core.Construct):
                 subnet_id=subnet_id,
                 tags=[
                     core.CfnTag(
-                        key = 'Name',
-                        value = ec2_instace_name_value(i)
+                        key='Name',
+                        value=ec2_instace_name_value(i)
                     ),
                 ],
             )
 
             if ec2_tags is not None:
-                for ec2_tag_key,ec2_tag_value in ec2_tags.items():
+                for ec2_tag_key, ec2_tag_value in ec2_tags.items():
                     if ec2_tag_key == 'Name':
                         continue
                     ec2_instance_tags = core.Tag.add(
@@ -139,13 +142,14 @@ class EC2CfnInstanceConstruct(core.Construct):
                     )
 
         if r53_hosted_zone_id and r53_zone_name is not None:
-            assert r53_a_record_name is not None, print(f'{r53_a_record_name} could not be empty.')
+            assert r53_a_record_name is not None, print(
+                f'{r53_a_record_name} could not be empty.')
             r53_zone = _route53.HostedZone.from_hosted_zone_attributes(
                 self, "R53ImportedHZ",
                 hosted_zone_id=r53_hosted_zone_id,
                 zone_name=r53_zone_name,
             )
-    
+
             r53_dns_a_record = _route53.ARecord(
                 self, "R53ARecord",
                 target=_route53.RecordTarget(

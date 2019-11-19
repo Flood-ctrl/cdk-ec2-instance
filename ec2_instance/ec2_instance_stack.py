@@ -27,7 +27,7 @@ class EC2Instance(core.Stack):
         #     vpc_name='shared_vpc'
         # )
 
-        jenkins_tcp_ports = [443,80]
+        jenkins_tcp_ports = [443, 80]
         jenkins_source = '0.0.0.0/0'
 
         def create_jenkins_sg(sg_ingress_ports, sg_ingress_source):
@@ -37,22 +37,21 @@ class EC2Instance(core.Stack):
                 availability_zones=['use1-az3'],
                 vpc_id='vpc-cddd6fb7',
             )
-    
+
             jenkins_sg = _ec2.SecurityGroup(
                 self, "JenkinsSG",
                 vpc=vpc,
                 security_group_name="jenkins_sg",
                 description="Security group for accessing the Jenkins from outside",
             )
-    
-    
+
             for port in sg_ingress_ports:
                 jenkins_sg.add_ingress_rule(
                     peer=_ec2.Peer.ipv4(sg_ingress_source),
                     connection=_ec2.Port.tcp(port),
                 )
 
-            return jenkins_sg.security_group_id 
+            return jenkins_sg.security_group_id
 
         jenkins_sg_id = create_jenkins_sg(jenkins_tcp_ports, jenkins_source)
 
@@ -78,10 +77,10 @@ class EC2Instance(core.Stack):
                                         ec2_tag_key='Application',
                                         log_level='DEBUG',
                                         ssm_document_name=ssm_document.ssm_document_name,
-                                       )
+                                        )
 
-        jenkins = EC2CfnInstanceConstruct(self, "JenkinsInstance", 
-                                          ec2_cfn_instance_id="Jenkins", 
+        jenkins = EC2CfnInstanceConstruct(self, "JenkinsInstance",
+                                          ec2_cfn_instance_id="Jenkins",
                                           image_id='ami-0b898040803850657',
                                           user_data_file='user_data.sh',
                                           instances_count=1,
