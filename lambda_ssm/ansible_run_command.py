@@ -23,6 +23,11 @@ def handler(event, context):
 
 
 def get_ec2_target(event):
+    '''Gets value for ec2_target variable for passing it to target_value var.
+       The value is taking from event and parsing it to playbook file name
+       witout extension (before dot and three charactes defining extension in MS Windows systems).
+       Palybook S3 path is taking from event also.
+    '''
     global playbook_path
     playbook_path = event['Records'][0]['s3']['object']['key']
     ec2_target = playbook_path.split("/")
