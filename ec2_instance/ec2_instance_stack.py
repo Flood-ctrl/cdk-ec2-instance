@@ -67,23 +67,24 @@ class EC2Instance(core.Stack):
             value='jenkins'
         )
 
-        ssm_document = CustomSsmDocumentConstruct(
-            self, "AnsibleSSMDocument",
-            json_ssm_document_file='custom_ssm_document/run_ansible_playbook_role.json',
-        )
+        # ssm_document = CustomSsmDocumentConstruct(
+        #     self, "AnsibleSSMDocument",
+        #     json_ssm_document_file='custom_ssm_document/run_ansible_playbook_role.json',
+        # )
 
-        lambda_smm = LambdaSsmConstruct(self, "JenkinsPlaybook",
-                                        playbook_url="s3://s3-jenkinsplaybook-test-purpose/",
-                                        ec2_tag_key='Application',
-                                        log_level='DEBUG',
-                                        ssm_document_name=ssm_document.ssm_document_name,
-                                        )
+        # lambda_smm = LambdaSsmConstruct(self, "JenkinsPlaybook",
+        #                                 playbook_url="s3://s3-jenkinsplaybook-test-purpose/",
+        #                                 ec2_tag_key='Application',
+        #                                 log_level='DEBUG',
+        #                                 ssm_document_name=ssm_document.ssm_document_name,
+        #                                 )
 
         jenkins = EC2CfnInstanceConstruct(self, "JenkinsInstance",
                                           ec2_cfn_instance_id="Jenkins",
                                           image_id='ami-0b898040803850657',
                                           user_data_file='user_data.sh',
                                           instances_count=1,
+                                          full_access_iam_role=False,
                                           ssm_ec2_managed_iam_role=True,
                                           subnet_id="subnet-014b6cf8b1ccbda7b",
                                           ec2_tags={

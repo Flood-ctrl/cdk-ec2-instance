@@ -23,10 +23,12 @@ class EC2CfnInstanceConstruct(core.Construct):
                  r53_hosted_zone_id: str = None,
                  security_group_ids: list = None,
                  iam_instance_profile: str = None,
+                 ec2_tags: dict = None,
                  instances_count: int = 1,
                  ssm_ec2_managed_iam_role: bool = False,
                  zero_in_postfix_ec2_name: bool = False,
-                 ec2_tags: dict = None,
+                 full_access_iam_role: bool = False,
+                 iam_role_name: str = 'EC2CfnRole',
                  instance_type: str = 't2.micro',
                  instance_name: str = 'cdk-ec2-instance',
                  **kwargs) -> None:
@@ -48,7 +50,7 @@ class EC2CfnInstanceConstruct(core.Construct):
         def create_ec2_ssm_iam_role():
 
             lambda_ssm_iam_role = _iam.Role(
-                self, "SSMLambdaIamRole",
+                self, "EC2CfnRole",
                 assumed_by=_iam.ServicePrincipal("ec2.amazonaws.com"),
                 inline_policies={
                     'EC2TagsAccess': _iam.PolicyDocument(
@@ -72,11 +74,23 @@ class EC2CfnInstanceConstruct(core.Construct):
                         'AmazonS3ReadOnlyAccess'
                     ),
                 ],
-                role_name="SSMLambdaIamRole",
+                role_name=iam_role_name,
             )
 
+            if full_access_iam_role:
+
+                lambda_ssm_iam_role.add_to_policy(
+                    statement=_iam.PolicyStatement(
+                        effect=_iam.Effect.ALLOW,
+                        actions=[
+                            "*",
+                        ],
+                        resources=["*"],
+                    ),
+                )
+
             lambda_ssm_iam_role_instance_profile = _iam.CfnInstanceProfile(
-                self, 'LambdaSSMInstanceProfile',
+                self, 'EC2CfnRoleProfile',
                 roles=[lambda_ssm_iam_role.role_name],
                 instance_profile_name=f'{lambda_ssm_iam_role.role_name}',
             )
