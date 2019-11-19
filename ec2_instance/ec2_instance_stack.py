@@ -65,7 +65,7 @@ class EC2Instance(core.Stack):
         apllication_tag = core.Tag.add(
             self,
             key='Applicaton',
-            value='Jenkins'
+            value='jenkins'
         )
 
         ssm_document = CustomSsmDocumentConstruct(
@@ -75,8 +75,8 @@ class EC2Instance(core.Stack):
 
         lambda_smm = LambdaSsmConstruct(self, "JenkinsPlaybook",
                                         playbook_url="s3://s3-jenkinsplaybook-test-purpose/",
-                                        ec2_tag_key='HostClass',
-                                        ec2_tag_value='CDK',
+                                        ec2_tag_key='Application',
+                                        log_level='DEBUG',
                                         ssm_document_name=ssm_document.ssm_document_name,
                                        )
 
@@ -94,7 +94,7 @@ class EC2Instance(core.Stack):
                                               'CDK-TYPE': 'EC2-Instance',
                                               'Provisioned': 'False',
                                               'Test-purpose': 'True',
-                                              'HostClass': 'CDK',
+                                              'HostClass': 'cdk',
                                           },
                                           security_group_ids=[jenkins_sg_id],
                                           )

@@ -9,16 +9,18 @@ from aws_cdk import (
     aws_s3_notifications as _s3_notifications,
 )
 
+
 class LambdaSsmConstruct(core.Construct):
 
     def __init__(self, scope: core.Construct, id: str,
-                 ec2_tag_key: str, ec2_tag_value: str,
+                 ec2_tag_key: str,
                  ssm_document_name: str,
                  playbook_url: str,
-                 playbook_file_name: str=None,
-                 notification_key_filter_prefix: str=None,
-                 notification_key_filter_suffix: str=None,
-                 log_level: str='INFO',
+                 playbook_file_name: str = None,
+                 ec2_tag_value: str = None,
+                 notification_key_filter_prefix: str = None,
+                 notification_key_filter_suffix: str = None,
+                 log_level: str = 'INFO',
                  **kwargs) -> None:
         """Creates a new construct node.
 
@@ -66,39 +68,39 @@ class LambdaSsmConstruct(core.Construct):
 
         lambda_ssm.add_to_role_policy(
             statement=_iam.PolicyStatement(
-                    effect=_iam.Effect.ALLOW,
-                    actions=[
-                        "ssm:DescribeAssociation",
-                        "ssm:GetDeployablePatchSnapshotForInstance",
-                        "ssm:GetDocument",
-                        "ssm:DescribeDocument",
-                        "ssm:GetManifest",
-                        "ssm:GetParameter",
-                        "ssm:GetParameters",
-                        "ssm:ListAssociations",
-                        "ssm:ListInstanceAssociations",
-                        "ssm:PutInventory",
-                        "ssm:PutComplianceItems",
-                        "ssm:PutConfigurePackageResult",
-                        "ssm:SendCommand",
-                        "ssm:UpdateAssociationStatus",
-                        "ssm:UpdateInstanceAssociationStatus",
-                        "ssm:UpdateInstanceInformation",
-                        "ssmmessages:CreateControlChannel",
-                        "ssmmessages:CreateDataChannel",
-                        "ssmmessages:OpenControlChannel",
-                        "ssmmessages:OpenDataChannel",
-                        "ec2:DescribeInstances",
-                        "ec2messages:AcknowledgeMessage",
-                        "ec2messages:DeleteMessage",
-                        "ec2messages:FailMessage",
-                        "ec2messages:GetEndpoint",
-                        "ec2messages:GetMessages",
-                        "ec2messages:SendReply",
-                        ],
-                    resources=["*"],
-                    )
-                )
+                effect=_iam.Effect.ALLOW,
+                actions=[
+                    "ssm:DescribeAssociation",
+                    "ssm:GetDeployablePatchSnapshotForInstance",
+                    "ssm:GetDocument",
+                    "ssm:DescribeDocument",
+                    "ssm:GetManifest",
+                    "ssm:GetParameter",
+                    "ssm:GetParameters",
+                    "ssm:ListAssociations",
+                    "ssm:ListInstanceAssociations",
+                    "ssm:PutInventory",
+                    "ssm:PutComplianceItems",
+                    "ssm:PutConfigurePackageResult",
+                    "ssm:SendCommand",
+                    "ssm:UpdateAssociationStatus",
+                    "ssm:UpdateInstanceAssociationStatus",
+                    "ssm:UpdateInstanceInformation",
+                    "ssmmessages:CreateControlChannel",
+                    "ssmmessages:CreateDataChannel",
+                    "ssmmessages:OpenControlChannel",
+                    "ssmmessages:OpenDataChannel",
+                    "ec2:DescribeInstances",
+                    "ec2messages:AcknowledgeMessage",
+                    "ec2messages:DeleteMessage",
+                    "ec2messages:FailMessage",
+                    "ec2messages:GetEndpoint",
+                    "ec2messages:GetMessages",
+                    "ec2messages:SendReply",
+                ],
+                resources=["*"],
+            )
+        )
 
         s3.grant_read(lambda_ssm)
 
@@ -115,18 +117,18 @@ class LambdaSsmConstruct(core.Construct):
                 )
             else:
                 filers = _s3.NotificationKeyFilter(
-                        prefix=notification_key_filter_prefix,
-                        suffix=notification_key_filter_suffix,
+                    prefix=notification_key_filter_prefix,
+                    suffix=notification_key_filter_suffix,
                 )
 
-            s3.add_event_notification(_s3.EventType.OBJECT_CREATED, 
+            s3.add_event_notification(_s3.EventType.OBJECT_CREATED,
                                       notification,
                                       filers,
-            )
+                                      )
         else:
-            s3.add_event_notification(_s3.EventType.OBJECT_CREATED, 
+            s3.add_event_notification(_s3.EventType.OBJECT_CREATED,
                                       notification,
-            )
+                                      )
 
         cloudwatch_event = _events.Rule(
             self, "CloudWatchEvent",

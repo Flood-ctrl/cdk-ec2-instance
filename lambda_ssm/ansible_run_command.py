@@ -21,12 +21,21 @@ def handler(event, context):
         'body': 'Done {}\n'.format(event)
     }
 
-playbook_path = 'jenkins/jenkins.yml'
 
-def ssm_run_command_run_ansible_playbook(context, target_key, target_value):
+def get_ec2_target(event):
+    global playbook_path
+    playbook_path = event['Records'][0]['s3']['object']['key']
+    ec2_target = playbook_path.split("/")
+    ec2_target = ec2_target[1].split(".")
+    ec2_target = ec2_target[0].lower()
+    return ec2_target
+
+
+def ssm_run_command_ansible_playbook(context, target_key, target_value):
     ssm_client = boto3.client('ssm')
     logger.info('SMM Document name: ' + os.environ['SSM_DOCUMENT_NAME'])
-    logger.info('Ansible Playbook: ' + os.environ['PLAYBOOK_URL'] + playbook_path)
+    logger.info('Ansible Playbook: ' +
+                os.environ['PLAYBOOK_URL'] + playbook_path)
     logger.debug('target_key: ' + target_key)
     logger.debug('target_value: ' + target_value)
     ssm_command_response = ssm_client.send_command(
@@ -34,13 +43,13 @@ def ssm_run_command_run_ansible_playbook(context, target_key, target_value):
             {
                 'Key': target_key,
                 'Values': [target_value]
-                }
-            ],
+            }
+        ],
         DocumentName=os.environ['SSM_DOCUMENT_NAME'],
         Parameters={
             'playbookurl': [os.environ['PLAYBOOK_URL'] + playbook_path],
-            },
-        )
+        },
+    )
     logger.debug(ssm_command_response)
     command_id = context.aws_request_id
     logger.debug(command_id)
@@ -56,7 +65,7 @@ def cw_event_tags_validator(event, context):
     logger.info('cw_event_tags_validator')
     if 'detail-type' in event.keys():
         if event['detail-type'] == 'EC2 Instance State-change Notification' \
-                                 and event['detail']['state'] == 'running':
+                and event['detail']['state'] == 'running':
             logger.info('EC2 Instance State-change Notification')
             ec2_instance_id = event['detail']['instance-id']
             logger.debug(ec2_instance_id)
@@ -64,7 +73,7 @@ def cw_event_tags_validator(event, context):
             ec2_event_response = ec2.describe_instances(
                 Filters=[
                     {
-                        'Name': 'tag:'+ os.environ['EC2_TAG_KEY'],
+                        'Name': 'tag:' + os.environ['EC2_TAG_KEY'],
                         'Values': [os.environ['EC2_TAG_VALUE']],
                     },
                 ],
@@ -76,8 +85,12 @@ def cw_event_tags_validator(event, context):
             if ec2_event_response['Reservations'] != []:
                 target_key = 'InstanceIds'
                 target_value = ec2_instance_id
-                ssm_run_command_run_ansible_playbook(context, target_key, target_value)
+                ssm_run_command_ansible_playbook(
+                    context, target_key, target_value)
     else:
-        target_key = 'tag:'+ os.environ['EC2_TAG_KEY']
-        target_value = os.environ['EC2_TAG_VALUE']
-        ssm_run_command_run_ansible_playbook(context, target_key, target_value)
+        target_key = 'tag:' + os.environ['EC2_TAG_KEY']
+        if os.environ['EC2_TAG_VALUE'] != 'None':
+            target_value = os.environ['EC2_TAG_VALUE']
+        else:
+            target_value = get_ec2_target(event)
+        ssm_run_command_ansible_playbook(context, target_key, target_value)
