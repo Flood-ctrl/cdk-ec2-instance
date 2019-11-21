@@ -4,6 +4,7 @@ from aws_cdk import (
     core,
     aws_ec2 as _ec2,
     aws_ssm as _ssm,
+    aws_elasticloadbalancingv2 as _elbv2,
 )
 
 from lambda_ssm.lambda_ssm_construct import LambdaSsmConstruct
@@ -17,43 +18,45 @@ class EC2Instance(core.Stack):
                  **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
+        ec2_beyond_alb = True
+        sg_ingress_jenkins_ports = [8080]
+        sg_ingress_jenkins_source = '0.0.0.0/0'
+
         ssm_subnet_id = _ssm.StringParameter.from_string_parameter_name(
             self, "SsmSubnetId1",
             string_parameter_name='semi_default_subnet_id'
         )
 
-        # vpc = ec2.Vpc.from_lookup(
-        #     self, "ImportedVpc",
-        #     vpc_name='shared_vpc'
-        # )
-
-        jenkins_tcp_ports = [443, 80]
-        jenkins_source = '0.0.0.0/0'
+        shared_vpc = _ec2.Vpc.from_vpc_attributes(
+            self, "ImportedSharedVpc",
+            availability_zones=['use1-az3', 'use1-az5'],
+            vpc_id='vpc-cddd6fb7',
+            public_subnet_ids=['subnet-014b6cf8b1ccbda7b',
+                               'subnet-0b378bea9beb9e12c'],
+        )
 
         def create_jenkins_sg(sg_ingress_ports, sg_ingress_source):
 
-            vpc = _ec2.Vpc.from_vpc_attributes(
-                self, "ImportedSharedVpc",
-                availability_zones=['use1-az3'],
-                vpc_id='vpc-cddd6fb7',
-            )
+            global jenkins_sg
 
             jenkins_sg = _ec2.SecurityGroup(
                 self, "JenkinsSG",
-                vpc=vpc,
+                vpc=shared_vpc,
                 security_group_name="jenkins_sg",
                 description="Security group for accessing the Jenkins from outside",
             )
 
-            for port in sg_ingress_ports:
-                jenkins_sg.add_ingress_rule(
-                    peer=_ec2.Peer.ipv4(sg_ingress_source),
-                    connection=_ec2.Port.tcp(port),
-                )
+            if not ec2_beyond_alb:
+                for port in sg_ingress_ports:
+                    jenkins_sg.add_ingress_rule(
+                        peer=_ec2.Peer.ipv4(sg_ingress_source),
+                        connection=_ec2.Port.tcp(port),
+                    )
 
             return jenkins_sg.security_group_id
 
-        jenkins_sg_id = create_jenkins_sg(jenkins_tcp_ports, jenkins_source)
+        jenkins_sg_id = create_jenkins_sg(
+            sg_ingress_jenkins_ports, sg_ingress_jenkins_source)
 
         contact_tag = core.Tag.add(
             self,
@@ -67,17 +70,17 @@ class EC2Instance(core.Stack):
             value='jenkins'
         )
 
-        # ssm_document = CustomSsmDocumentConstruct(
-        #     self, "AnsibleSSMDocument",
-        #     json_ssm_document_file='custom_ssm_document/run_ansible_playbook_role.json',
-        # )
+        ssm_document = CustomSsmDocumentConstruct(
+            self, "AnsibleSSMDocument",
+            json_ssm_document_file='custom_ssm_document/run_ansible_playbook_role.json',
+        )
 
-        # lambda_smm = LambdaSsmConstruct(self, "JenkinsPlaybook",
-        #                                 playbook_url="s3://s3-jenkinsplaybook-test-purpose/",
-        #                                 ec2_tag_key='Application',
-        #                                 log_level='DEBUG',
-        #                                 ssm_document_name=ssm_document.ssm_document_name,
-        #                                 )
+        lambda_smm = LambdaSsmConstruct(self, "JenkinsPlaybook",
+                                        playbook_url="s3://s3-jenkinsplaybook-test-purpose/",
+                                        ec2_tag_key='Application',
+                                        log_level='DEBUG',
+                                        ssm_document_name=ssm_document.ssm_document_name,
+                                        )
 
         jenkins = EC2CfnInstanceConstruct(self, "JenkinsInstance",
                                           ec2_cfn_instance_id="Jenkins",
@@ -98,3 +101,58 @@ class EC2Instance(core.Stack):
                                           },
                                           security_group_ids=[jenkins_sg_id],
                                           )
+
+        alb_sg = _ec2.SecurityGroup(
+            self, "ALBSG",
+            vpc=shared_vpc,
+            security_group_name="ALB_SG",
+            description="SG for ALB",
+        )
+
+        alb_sg.add_ingress_rule(
+            peer=_ec2.Peer.ipv4('0.0.0.0/0'),
+            connection=_ec2.Port.tcp(443),
+        )
+
+        alb_sg.add_egress_rule(
+            peer=_ec2.Connections(
+                security_groups=[jenkins_sg],
+            ),
+            connection=_ec2.Port.tcp(8080),
+        )
+
+        alb_sg.connections.allow_to(
+            other=jenkins_sg,
+            port_range=_ec2.Port.tcp(8080)
+        )
+
+        alb_target_group = _elbv2.ApplicationTargetGroup(
+            self, "AppTargetGroup",
+            port=sg_ingress_jenkins_ports[0],
+            vpc=shared_vpc,
+            target_type=_elbv2.TargetType.IP,
+            targets=[_elbv2.IpTarget(
+                jenkins.ec2_instance_private_ip
+            )],
+        )
+
+        alb = _elbv2.ApplicationLoadBalancer(
+            self, "ALB",
+            vpc=shared_vpc,
+            internet_facing=True,
+            load_balancer_name="JenkinsALB",
+            security_group=alb_sg,
+        )
+
+        alb_listener = _elbv2.ApplicationListener(
+            self, "ALBListener",
+            load_balancer=alb,
+            port=80,
+            default_target_groups=[alb_target_group]
+        )
+
+        if ec2_beyond_alb:
+            jenkins_sg.connections.allow_from(
+                other=alb_sg,
+                port_range=_ec2.Port.tcp(8080)
+            )

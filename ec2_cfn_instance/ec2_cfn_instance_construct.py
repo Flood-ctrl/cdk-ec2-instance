@@ -172,3 +172,5 @@ class EC2CfnInstanceConstruct(core.Construct):
                 zone=r53_zone,
                 record_name=f'{r53_a_record_name}.{r53_zone.zone_name}',
             )
+
+        self.ec2_instance_private_ip = ec2_cfn_instance.attr_private_ip
