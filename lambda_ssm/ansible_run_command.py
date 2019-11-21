@@ -28,11 +28,22 @@ def get_ec2_target(event):
        witout extension (before dot and three charactes defining extension in MS Windows systems).
        Palybook S3 path is taking from event also.
     '''
+
+    logger.info('get_ec2_target')
     global playbook_path
     playbook_path = event['Records'][0]['s3']['object']['key']
+    logger.debug(playbook_path)
     ec2_target = playbook_path.split("/")
-    ec2_target = ec2_target[1].split(".")
+    logger.debug(ec2_target)
+    try:
+        ec2_target = ec2_target[1].split(".")
+        logger.debug(ec2_target)
+    except IndexError:
+        logger.debug('IndexError exeption')
+        ec2_target = ec2_target[0].split(".")
+        logger.debug(ec2_target)
     ec2_target = ec2_target[0].lower()
+    logger.debug(ec2_target)
     return ec2_target
 
 
