@@ -13,6 +13,7 @@ class ALBConstruct(core.Construct):
                  app_target_group_port: int,
                  target_group_targets_ip: str,
                  internet_facing: bool = True,
+                 http_to_https_redirect: bool = False,
                  ingress_sg_port: int = 80,
                  ingress_sg_peer: str = None,
                  sg_name: str = "alb_sg",
@@ -80,35 +81,40 @@ class ALBConstruct(core.Construct):
             default_target_groups=[alb_target_group],
         )
 
-        http_listener = self.alb.add_listener(
-            'HttpListener',
-            port=80
-        )
 
-        http_listener.add_fixed_response("DummyResponse",
-                                         status_code='404')
+        # Rederect from http to https
+        assert listener_port != 80, "Listener port could not be 80."
+        if http_to_https_redirect:
 
-        http_listener_rule = _elbv2.CfnListenerRule(
-            self, "HttpListRule",
-            actions=[
-                {
-                    "type": "redirect", "redirectConfig": {
-                        "protocol": "HTTPS",
-                        "port": "443",
-                        "host": "#{host}",
-                        "path": "/#{path}",
-                        "query": "#{query}",
-                        "statusCode": "HTTP_301"
+            http_listener = self.alb.add_listener(
+                'HttpListener',
+                port=80
+            )
+
+            http_listener.add_fixed_response(f"{id_prefix}DummyResponse",
+                                             status_code='404')
+
+            http_listener_rule = _elbv2.CfnListenerRule(
+                self, f"{id_prefix}HttpListenerRule",
+                actions=[
+                    {
+                        "type": "redirect", "redirectConfig": {
+                            "protocol": "HTTPS",
+                            "port": "443",
+                            "host": "#{host}",
+                            "path": "/#{path}",
+                            "query": "#{query}",
+                            "statusCode": "HTTP_301"
+                        }
                     }
-                }
-            ],
-            priority=1,
-            listener_arn=http_listener.listener_arn,
-            conditions=[
-                {
-                    "field": 'path-pattern',
-                    "values": ['*']
-                }
-            ],
+                ],
+                priority=1,
+                listener_arn=http_listener.listener_arn,
+                conditions=[
+                    {
+                        "field": 'path-pattern',
+                        "values": ['*']
+                    }
+                ],
 
-        )
+            )

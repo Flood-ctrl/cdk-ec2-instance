@@ -114,6 +114,7 @@ class EC2Instance(core.Stack):
                                vpc=shared_vpc,
                                ingress_sg_port=443,
                                ingress_sg_peer='0.0.0.0/0',
+                               http_to_https_redirect=True,
                                egress_sg_port=sg_ingress_jenkins_ports[0],
                                egress_security_group=jenkins_sg,
                                target_group_targets_ip=jenkins.ec2_instance_private_ip,
