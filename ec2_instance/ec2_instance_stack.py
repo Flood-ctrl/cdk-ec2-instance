@@ -10,6 +10,7 @@ from aws_cdk import (
 from lambda_ssm.lambda_ssm_construct import LambdaSsmConstruct
 from ec2_cfn_instance.ec2_cfn_instance_construct import EC2CfnInstanceConstruct
 from custom_ssm_document.custom_ssm_document_construct import CustomSsmDocumentConstruct
+from alb.alb_construct import ALBConstruct
 
 
 class EC2Instance(core.Stack):
@@ -25,6 +26,11 @@ class EC2Instance(core.Stack):
         ssm_subnet_id = _ssm.StringParameter.from_string_parameter_name(
             self, "SsmSubnetId1",
             string_parameter_name='semi_default_subnet_id'
+        )
+
+        ssm_jenkins_ssl_cert = _ssm.StringParameter.from_string_parameter_name(
+            self, "JenkinsSSLCertARN",
+            string_parameter_name='jenkins-alb-certificate'
         )
 
         shared_vpc = _ec2.Vpc.from_vpc_attributes(
@@ -102,57 +108,21 @@ class EC2Instance(core.Stack):
                                           security_group_ids=[jenkins_sg_id],
                                           )
 
-        alb_sg = _ec2.SecurityGroup(
-            self, "ALBSG",
-            vpc=shared_vpc,
-            security_group_name="ALB_SG",
-            description="SG for ALB",
-        )
-
-        alb_sg.add_ingress_rule(
-            peer=_ec2.Peer.ipv4('0.0.0.0/0'),
-            connection=_ec2.Port.tcp(443),
-        )
-
-        alb_sg.add_egress_rule(
-            peer=_ec2.Connections(
-                security_groups=[jenkins_sg],
-            ),
-            connection=_ec2.Port.tcp(8080),
-        )
-
-        alb_sg.connections.allow_to(
-            other=jenkins_sg,
-            port_range=_ec2.Port.tcp(8080)
-        )
-
-        alb_target_group = _elbv2.ApplicationTargetGroup(
-            self, "AppTargetGroup",
-            port=sg_ingress_jenkins_ports[0],
-            vpc=shared_vpc,
-            target_type=_elbv2.TargetType.IP,
-            targets=[_elbv2.IpTarget(
-                jenkins.ec2_instance_private_ip
-            )],
-        )
-
-        alb = _elbv2.ApplicationLoadBalancer(
-            self, "ALB",
-            vpc=shared_vpc,
-            internet_facing=True,
-            load_balancer_name="JenkinsALB",
-            security_group=alb_sg,
-        )
-
-        alb_listener = _elbv2.ApplicationListener(
-            self, "ALBListener",
-            load_balancer=alb,
-            port=80,
-            default_target_groups=[alb_target_group]
-        )
-
         if ec2_beyond_alb:
+
+            alb = ALBConstruct(self, "JenkinsALB",
+                               vpc=shared_vpc,
+                               ingress_sg_port=443,
+                               egress_sg_port=sg_ingress_jenkins_ports[0],
+                               egress_security_group=jenkins_sg,
+                               target_group_targets_ip=jenkins.ec2_instance_private_ip,
+                               listener_port=443,
+                               app_target_group_port=sg_ingress_jenkins_ports[0],
+                               listener_cerificates=[
+                                   ssm_jenkins_ssl_cert.string_value],
+                               )
+
             jenkins_sg.connections.allow_from(
-                other=alb_sg,
+                other=alb.alb_sg,
                 port_range=_ec2.Port.tcp(8080)
             )
