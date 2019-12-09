@@ -19,7 +19,7 @@ class EC2Instance(core.Stack):
                  **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
-        ec2_beyond_alb = True
+        ec2_beyond_alb = False
         sg_ingress_jenkins_ports = [8080]
         sg_ingress_jenkins_source = '0.0.0.0/0'
 
@@ -76,17 +76,17 @@ class EC2Instance(core.Stack):
             value='jenkins'
         )
 
-        ssm_document = CustomSsmDocumentConstruct(
-            self, "AnsibleSSMDocument",
-            json_ssm_document_file='custom_ssm_document/run_ansible_playbook_role.json',
-        )
+        # ssm_document = CustomSsmDocumentConstruct(
+        #     self, "AnsibleSSMDocument",
+        #     json_ssm_document_file='custom_ssm_document/run_ansible_playbook_role.json',
+        # )
 
-        lambda_smm = LambdaSsmConstruct(self, "JenkinsPlaybook",
-                                        playbook_url="s3://s3-jenkinsplaybook-test-purpose/",
-                                        ec2_tag_key='Application',
-                                        log_level='DEBUG',
-                                        ssm_document_name=ssm_document.ssm_document_name,
-                                        )
+        # lambda_smm = LambdaSsmConstruct(self, "JenkinsPlaybook",
+        #                                 playbook_url="s3://s3-jenkinsplaybook-test-purpose/",
+        #                                 ec2_tag_key='Application',
+        #                                 log_level='DEBUG',
+        #                                 ssm_document_name=ssm_document.ssm_document_name,
+        #                                 )
 
         jenkins = EC2CfnInstanceConstruct(self, "JenkinsInstance",
                                           ec2_cfn_instance_id="Jenkins",
@@ -108,23 +108,7 @@ class EC2Instance(core.Stack):
                                           security_group_ids=[jenkins_sg_id],
                                           )
 
-        if ec2_beyond_alb:
-
-            alb = ALBConstruct(self, "JenkinsALB",
-                               vpc=shared_vpc,
-                               ingress_sg_port=443,
-                               ingress_sg_peer='0.0.0.0/0',
-                               http_to_https_redirect=True,
-                               egress_sg_port=sg_ingress_jenkins_ports[0],
-                               egress_security_group=jenkins_sg,
-                               target_group_targets_ip=jenkins.ec2_instance_private_ip,
-                               listener_port=443,
-                               app_target_group_port=sg_ingress_jenkins_ports[0],
-                               listener_cerificates=[
-                                   ssm_jenkins_ssl_cert.string_value],
-                               )
-
-            jenkins_sg.connections.allow_from(
-                other=alb.alb_sg,
-                port_range=_ec2.Port.tcp(8080)
-            )
+        core.CfnOutput(
+            self, "InsanceID",
+            value=jenkins.ec2_cfn_instance.ref,
+        )

@@ -127,7 +127,7 @@ class EC2CfnInstanceConstruct(core.Construct):
                 userdata.encode("ascii")).decode('ascii')
 
         for i in range(0, instances_count):
-            ec2_cfn_instance = _ec2.CfnInstance(
+            self.ec2_cfn_instance = _ec2.CfnInstance(
                 self, ec2_cfn_instance_id + f'{i}',
                 key_name=ssh_key_name,
                 user_data=user_data,
@@ -167,10 +167,8 @@ class EC2CfnInstanceConstruct(core.Construct):
             r53_dns_a_record = _route53.ARecord(
                 self, "R53ARecord",
                 target=_route53.RecordTarget(
-                    values=[ec2_cfn_instance.attr_private_ip]
+                    values=[self.ec2_cfn_instance.attr_private_ip]
                 ),
                 zone=r53_zone,
                 record_name=f'{r53_a_record_name}.{r53_zone.zone_name}',
             )
-
-        self.ec2_instance_private_ip = ec2_cfn_instance.attr_private_ip
