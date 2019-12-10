@@ -54,7 +54,7 @@ class EC2CfnInstanceConstruct(core.Construct):
         def create_ec2_iam_role():
 
             ec2_iam_role = _iam.Role(
-                self, "EC2CfnRole",
+                self, f"{ec2_cfn_instance_id}EC2CfnRole",
                 assumed_by=_iam.ServicePrincipal("ec2.amazonaws.com"),
                 inline_policies={
                     'EC2TagsAccess': _iam.PolicyDocument(
@@ -94,7 +94,7 @@ class EC2CfnInstanceConstruct(core.Construct):
                 )
 
             ec2_iam_role_instance_profile = _iam.CfnInstanceProfile(
-                self, 'EC2CfnRoleProfile',
+                self, f"{ec2_cfn_instance_id}EC2CfnRoleProfile",
                 roles=[ec2_iam_role.role_name],
                 instance_profile_name=f'{ec2_iam_role.role_name}',
             )
@@ -165,13 +165,13 @@ class EC2CfnInstanceConstruct(core.Construct):
             assert r53_a_record_name is not None, print(
                 f'{r53_a_record_name} could not be empty.')
             r53_zone = _route53.HostedZone.from_hosted_zone_attributes(
-                self, "R53ImportedHZ",
+                self, f"{ec2_cfn_instance_id}R53ImportedHZ",
                 hosted_zone_id=r53_hosted_zone_id,
                 zone_name=r53_zone_name,
             )
 
             r53_dns_a_record = _route53.ARecord(
-                self, "R53ARecord",
+                self, f"{ec2_cfn_instance_id}R53ARecord",
                 target=_route53.RecordTarget(
                     values=[self.ec2_cfn_instance.attr_private_ip]
                 ),
