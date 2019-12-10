@@ -76,6 +76,8 @@ class EC2Instance(core.Stack):
             value='jenkins'
         )
 
+        subnet_id = "subnet-014b6cf8b1ccbda7b"
+
         # ssm_document = CustomSsmDocumentConstruct(
         #     self, "AnsibleSSMDocument",
         #     json_ssm_document_file='custom_ssm_document/run_ansible_playbook_role.json',
@@ -94,7 +96,7 @@ class EC2Instance(core.Stack):
                                           user_data_file='user_data.sh',
                                           instances_count=1,
                                           full_access_iam_role=False,
-                                          ssm_ec2_managed_iam_role=True,
+                                          ssm_managed_iam_role=True,
                                           subnet_id="subnet-014b6cf8b1ccbda7b",
                                           ec2_tags={
                                               'Name': self.stack_name,
@@ -107,6 +109,43 @@ class EC2Instance(core.Stack):
                                           },
                                           security_group_ids=[jenkins_sg_id],
                                           )
+
+        tag_lifecycle_value = "TESTING"
+
+        tag_contact_value = "DevOps"
+
+        # Create a list of core.CfnTag objects with tags dict populated
+        def create_tags(tags):
+            cfn_tags = list()
+            for tag_key, tag_value in tags.items():
+                core_tags = core.CfnTag(
+                    key=tag_key,
+                    value=tag_value
+                )
+                cfn_tags.append(core_tags)
+            return cfn_tags
+
+        # Dict with Data Network interface tags
+        data_interface_tags = {
+            'Name': f'Castiron data interface {tag_lifecycle_value}',
+            'Contact': tag_contact_value
+        }
+
+        # Network interface creation
+        eth1_network_interface = _ec2.CfnNetworkInterface(
+            self, "CastIronEth1NetworkInterface",
+            subnet_id=subnet_id,
+            description="Castiron eth1 networkinterface",
+            tags=create_tags(data_interface_tags)
+        )
+
+        # Network interface attaching
+        _ec2.CfnNetworkInterfaceAttachment(
+            self, "Eth1Attachment",
+            device_index='1',
+            instance_id=jenkins.ec2_cfn_instance.ref,
+            network_interface_id=eth1_network_interface.ref
+        )
 
         core.CfnOutput(
             self, "InsanceID",
