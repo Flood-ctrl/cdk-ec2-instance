@@ -28,7 +28,7 @@ class LambdaSsmConstruct(core.Construct):
         :param id: The scoped construct ID. Must be unique amongst siblings. If the ID includes a path separator (``/``), then it will be replaced by double dash ``--``.
         :param ec2_tag_key: Key for resources tag (key).
         :param ec2_tag_value: Value for resource tag (value).
-        :param log_level: Log level for lambda function (INFO, DEBUG, etc)
+        :param log_level: Log level for lambda function (INFO, DEBUG, etc).
         :param playbook_url: S3 URL to Ansible playbook.
         :param playbook_file_name: Ansible playbook file name, if playbook_url is not None playbook_file_name is skipping.
         """
